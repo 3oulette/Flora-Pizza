@@ -495,12 +495,12 @@ function slotColor(booked) {
 
 function slotPct(booked) { return Math.min(100, (booked / MAX) * 100); }
 
-// Earliest slot with capacity (force=false) or any slot (force=true)
+// Earliest slot with capacity, fallback to first slot
 function suggestSlot(needed) {
   for (let i = 0; i < SLOTS.length; i++) {
     if (SLOTS[i].booked + needed <= MAX) return i;
   }
-  return null;
+  return 0;
 }
 
 // ── RENDER MENU ──
@@ -549,8 +549,7 @@ function renderSlotPicker() {
 
   // Auto-suggest earliest available if nothing selected
   if (needed > 0 && selectedSlotIdx === null) {
-    const sug = suggestSlot(needed);
-    if (sug !== null) selectedSlotIdx = sug;
+    selectedSlotIdx = suggestSlot(needed);
   }
 
   if (needed === 0) selectedSlotIdx = null;
@@ -579,8 +578,8 @@ function renderSlotPicker() {
     const col = isOver ? 'var(--red)' : slotColor(afterBook);
 
     if (isOver) {
-      statusEl.className = 'slot-sug-status over';
-      statusEl.textContent = `⚡ Forcé — ${afterBook}/${MAX}`;
+      statusEl.className = 'slot-sug-status warn';
+      statusEl.textContent = `⚠️ Surchargé — ${afterBook}/${MAX}`;
     } else if (afterBook >= 8) {
       statusEl.className = 'slot-sug-status warn';
       statusEl.textContent = `${MAX - afterBook} pizza(s) restantes`;
@@ -604,7 +603,7 @@ function renderDropdown() {
     const isOver = afterBook > MAX;
     const col = slotColor(s.booked);
     const isSelected = i === selectedSlotIdx;
-    const forceLabel = isOver ? `<span class="slot-opt-force">⚡ forcer</span>` : '';
+    const forceLabel = '';
 
     return `
     <div class="slot-opt ${isSelected ? 'selected-opt' : ''} ${isOver ? 'over-opt' : ''}"
@@ -613,7 +612,7 @@ function renderDropdown() {
       <div class="slot-opt-track">
         <div class="slot-opt-fill" style="width:${slotPct(s.booked)}%;background:${col}"></div>
       </div>
-      <span class="slot-opt-count" style="color:${col}">${s.booked}/${MAX}</span>
+      <span class="slot-opt-count" style="color:${slotColor(s.booked)}">${s.booked}/${MAX}</span>
       ${forceLabel}
     </div>`;
   }).join('');
@@ -656,9 +655,7 @@ function renderValidateBtn() {
   const isOver = s.booked + needed > MAX;
 
   btn.disabled = false;
-  btn.textContent = isOver
-    ? `⚡ Forcer — ${s.label}`
-    : `✓  Encaisser — ${s.label}`;
+  btn.textContent = `✓  Encaisser — ${s.label}`;
   btn.className = 'validate-btn';
 }
 
@@ -677,8 +674,8 @@ function renderPlanning() {
       return `<div class="sr-dot" style="background:${dotCol}"></div>`;
     }).join('');
 
-    const statusLabel = isOver ? 'FORCÉ' : booked >= MAX ? 'COMPLET' : booked >= 8 ? 'QUASI' : `${MAX - booked} dispo`;
-    const statusColor = isOver ? 'var(--red)' : booked >= MAX ? 'var(--red)' : booked >= 8 ? 'var(--yellow)' : 'var(--green)';
+    const statusLabel = booked > MAX ? `+${booked-MAX}` : booked >= MAX ? 'PLEIN' : booked >= 8 ? 'QUASI' : `${MAX - booked} dispo`;
+    const statusColor = booked > MAX ? 'var(--red)' : booked >= MAX ? 'var(--yellow)' : booked >= 8 ? 'var(--yellow)' : 'var(--green)';
 
     return `
     <div class="slot-row ${isSelected ? 'selected-row' : ''} ${isOver ? 'over-row' : ''}"
@@ -777,24 +774,9 @@ function validateOrder() {
   if (!histOpen) toggleHistory();
 }
 
-function deleteOrder(idx) {
-  if (!confirm('Supprimer cette commande ?')) return;
-  orders.splice(idx, 1);
-  renderHistory();
-}
+// deleteOrder remplacé ci-dessous
 
-function resetService() {
-  if (!orders.length) return;
-  if (!confirm('Réinitialiser le service ?')) return;
-  orders = [];
-  orderCounter = 0;
-  SLOTS.forEach(s => s.booked = 0);
-  selectedSlotIdx = null;
-  renderHistory();
-  renderPlanning();
-  renderSlotPicker();
-  renderValidateBtn();
-}
+// resetService remplacé ci-dessous
 
 function toggleHistory() {
   histOpen = !histOpen;
@@ -816,7 +798,54 @@ function toggleBlur() {
   document.getElementById('revealBtn').textContent = totalVisible ? '🙈 Masquer' : '👁 Afficher';
 }
 
+// ── PERSISTANCE localStorage ──
+const STORAGE_KEY = 'flora_pizza_service';
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      orders, orderCounter,
+      slots: SLOTS.map(s => s.booked),
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.orders)       orders = data.orders;
+    if (data.orderCounter) orderCounter = data.orderCounter;
+    if (data.slots)        data.slots.forEach((b, i) => { if (SLOTS[i]) SLOTS[i].booked = b; });
+  } catch(e) {}
+}
+
+// Surcharge des actions pour sauvegarder automatiquement
+const _origValidate = validateOrder;
+validateOrder = function() { _origValidate(); saveState(); };
+
+const _origDelete = deleteOrder;
+deleteOrder = function(idx) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  orders.splice(idx, 1);
+  saveState();
+  renderHistory();
+};
+
+const _origReset = resetService;
+resetService = function() {
+  if (!orders.length) return;
+  if (!confirm('Réinitialiser le service ?')) return;
+  orders = []; orderCounter = 0;
+  SLOTS.forEach(s => s.booked = 0);
+  selectedSlotIdx = null;
+  saveState();
+  renderHistory(); renderPlanning(); renderSlotPicker(); renderValidateBtn();
+};
+
 // ── INIT ──
+loadState();
 renderMenu();
 renderTicket();
 renderHistory();
@@ -824,3 +853,4 @@ renderPlanning();
 </script>
 </body>
 </html>
+
