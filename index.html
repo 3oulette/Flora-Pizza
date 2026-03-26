@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caisse Pizza — Flora</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #1C1C1E;
+    --panel:   #2C2C2E;
+    --card:    #3A3A3C;
+    --card2:   #444446;
+    --border:  #48484A;
+    --sep:     #38383A;
+    --accent:  #0A84FF;
+    --accent2: #409CFF;
+    --green:   #30D158;
+    --red:     #FF453A;
+    --yellow:  #FFD60A;
+    --txt:     #FFFFFF;
+    --txt2:    #AEAEB2;
+    --txt3:    #636366;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    display: flex; flex-direction: column; height: 100vh;
+  }
+
+  /* ══ TOPBAR ══ */
+  .topbar {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0 20px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; z-index: 10;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+
+  .topbar-logo {
+    width: 32px; height: 32px; background: var(--accent);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+
+  .topbar-name { font-size: 15px; font-weight: 700; }
+  .topbar-name span { font-weight: 400; color: var(--txt3); margin-left: 6px; font-size: 13px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .service-pill {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .svc-label { font-size: 10px; font-weight: 600; color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .svc-amount { font-size: 16px; font-weight: 800; color: var(--accent); transition: filter 0.3s; letter-spacing: -0.01em; }
+  .svc-amount.blurred { filter: blur(8px); }
+  .svc-count { font-size: 10px; font-weight: 500; color: var(--txt3); padding-left: 8px; border-left: 1px solid var(--border); }
+
+  .reveal-btn {
+    background: var(--card); border: 1px solid var(--border); border-radius: 7px;
+    padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px;
+    font-weight: 600; color: var(--txt2); cursor: pointer; transition: all 0.15s;
+  }
+  .reveal-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ══ LAYOUT ══ */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ══════════════════
+     TICKET
+  ══════════════════ */
+  .ticket-col {
+    width: 300px; flex-shrink: 0;
+    background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .ticket-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--sep);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .ticket-header-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+
+  .ticket-clear-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 3px 9px; font-family: 'Inter', sans-serif; font-size: 10px;
+    font-weight: 600; color: var(--txt3); cursor: pointer; transition: all 0.15s;
+  }
+  .ticket-clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .ticket-order { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .ticket-order::-webkit-scrollbar { width: 3px; }
+  .ticket-order::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .ticket-empty { padding: 32px 20px; text-align: center; color: var(--txt3); font-size: 12px; line-height: 1.7; }
+  .ticket-empty-icon { font-size: 26px; display: block; margin-bottom: 8px; opacity: 0.4; }
+
+  .ticket-line {
+    display: flex; align-items: center;
+    padding: 8px 16px; gap: 10px; border-bottom: 1px solid var(--sep);
+  }
+  .ticket-line:last-child { border-bottom: none; }
+  .tl-color { width: 3px; height: 26px; border-radius: 2px; flex-shrink: 0; }
+  .tl-info { flex: 1; min-width: 0; }
+  .tl-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-unit { font-size: 10px; color: var(--txt3); margin-top: 1px; }
+  .tl-qty { font-size: 12px; font-weight: 700; color: var(--txt2); flex-shrink: 0; width: 22px; text-align: center; }
+  .tl-total { font-size: 13px; font-weight: 700; color: var(--txt); flex-shrink: 0; width: 38px; text-align: right; }
+
+  /* ══ SLOT PICKER ══ */
+  .slot-picker { border-top: 1px solid var(--sep); padding: 12px 16px; flex-shrink: 0; }
+
+  .slot-picker-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); margin-bottom: 8px; }
+
+  .slot-suggestion {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 9px;
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; cursor: pointer; transition: all 0.15s; margin-bottom: 6px;
+  }
+  .slot-suggestion:hover { border-color: var(--txt3); }
+  .slot-suggestion.selected { border-color: var(--accent); background: rgba(10,132,255,0.08); }
+  .slot-suggestion.overbooked { border-color: var(--yellow); background: rgba(255,214,10,0.06); }
+
+  .slot-sug-left { display: flex; flex-direction: column; gap: 2px; }
+  .slot-sug-time { font-size: 18px; font-weight: 800; color: var(--txt); letter-spacing: -0.01em; }
+  .slot-sug-status { font-size: 10px; font-weight: 600; }
+  .slot-sug-status.ok { color: var(--green); }
+  .slot-sug-status.warn { color: var(--yellow); }
+  .slot-sug-status.over { color: var(--red); }
+  .slot-sug-status.empty { color: var(--txt3); }
+
+  .slot-sug-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+  .slot-sug-bar-track { width: 100%; height: 5px; background: var(--bg); border-radius: 3px; overflow: visible; }
+  .slot-sug-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .slot-sug-count { font-size: 10px; font-weight: 700; color: var(--txt2); }
+
+  .slot-dropdown {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+    overflow: hidden; margin-top: 4px; display: none; max-height: 210px; overflow-y: auto;
+  }
+  .slot-dropdown::-webkit-scrollbar { width: 3px; }
+  .slot-dropdown::-webkit-scrollbar-thumb { background: var(--border); }
+  .slot-dropdown.open { display: block; }
+
+  .slot-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-bottom: 1px solid var(--sep);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .slot-opt:last-child { border-bottom: none; }
+  .slot-opt:hover { background: var(--card); }
+  .slot-opt.selected-opt { background: rgba(10,132,255,0.08); }
+  .slot-opt.over-opt { background: rgba(255,69,58,0.05); }
+
+  .slot-opt-time { font-size: 12px; font-weight: 700; color: var(--txt); width: 42px; flex-shrink: 0; }
+  .slot-opt-track { flex: 1; height: 5px; background: var(--card2); border-radius: 3px; overflow: hidden; }
+  .slot-opt-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .slot-opt-count { font-size: 10px; font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
+
+  .slot-opt-force {
+    font-size: 8px; font-weight: 700; color: var(--yellow); letter-spacing: 0.06em;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+
+  /* ══ TICKET FOOTER ══ */
+  .ticket-footer { border-top: 1px solid var(--border); padding: 12px 16px; flex-shrink: 0; }
+
+  .ticket-total-row {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  }
+
+  .ticket-total-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--txt3); }
+  .ticket-total-amount { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  .ticket-total-amount span { font-size: 15px; color: var(--txt3); font-weight: 600; }
+
+  .validate-btn {
+    width: 100%; padding: 13px; background: var(--green); color: white;
+    border: none; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+    border-radius: 10px; cursor: pointer; transition: all 0.15s;
+  }
+  .validate-btn:hover { background: #28b84d; }
+  .validate-btn:active { transform: scale(0.98); }
+  .validate-btn:disabled { background: var(--card); color: var(--txt3); cursor: not-allowed; transform: none; }
+  .validate-btn.flash { background: var(--accent) !important; }
+
+  /* Historique */
+  .history-section { border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  .history-toggle {
+    padding: 9px 16px; display: flex; align-items: center;
+    justify-content: space-between; cursor: pointer; user-select: none;
+  }
+
+  .history-toggle-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+  .hist-arrow { font-size: 10px; color: var(--txt3); transition: transform 0.2s; }
+  .hist-arrow.open { transform: rotate(180deg); }
+  .history-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+  .history-body.open { max-height: 160px; overflow-y: auto; }
+  .history-body::-webkit-scrollbar { width: 3px; }
+  .history-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .hist-row { display: flex; align-items: center; padding: 7px 16px; gap: 8px; border-bottom: 1px solid var(--sep); }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-num { font-size: 9px; font-weight: 700; color: var(--txt3); width: 22px; }
+  .hist-detail { flex: 1; min-width: 0; }
+  .hist-summary { font-size: 10px; font-weight: 500; color: var(--txt2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-time { font-size: 9px; color: var(--txt3); margin-top: 1px; }
+  .hist-slot { font-size: 10px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .hist-amount { font-size: 12px; font-weight: 700; color: var(--green); flex-shrink: 0; }
+  .hist-del { background: none; border: none; color: var(--txt3); cursor: pointer; font-size: 14px; padding: 0 2px; transition: color 0.1s; }
+  .hist-del:hover { color: var(--red); }
+
+  .hist-footer { padding: 8px 16px; border-top: 1px solid var(--sep); }
+  .reset-btn {
+    width: 100%; background: none; border: 1px solid var(--border); border-radius: 7px;
+    padding: 7px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ══════════════════
+     DROITE / TABS
+  ══════════════════ */
+  .menu-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+  .tabs-bar { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--panel); }
+
+  .tab-btn {
+    flex: 1; padding: 14px 16px; background: none; border: none;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--txt3); cursor: pointer; transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--txt); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--txt2); }
+
+  .tab-pane { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .tab-pane.active { display: flex; }
+
+  /* MENU */
+  .menu-scroll { flex: 1; overflow-y: auto; padding: 14px 16px; }
+  .menu-scroll::-webkit-scrollbar { width: 4px; }
+  .menu-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  .menu-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 11px 10px 10px;
+    cursor: pointer; transition: all 0.12s;
+    display: flex; flex-direction: column; gap: 7px;
+    user-select: none; position: relative;
+  }
+  .menu-card:hover { border-color: var(--txt3); background: var(--card2); }
+  .menu-card.active { border-color: var(--accent); background: rgba(10,132,255,0.1); }
+
+  .mc-name { font-size: 11.5px; font-weight: 700; color: var(--txt); line-height: 1.25; }
+  .mc-price { font-size: 12px; font-weight: 700; color: var(--txt2); }
+  .mc-price.active { color: var(--accent2); }
+
+  .mc-stepper {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg); border-radius: 7px; overflow: hidden;
+  }
+  .mc-stepper button {
+    width: 30px; height: 27px; border: none; background: transparent;
+    color: var(--txt2); font-size: 18px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s, color 0.1s; flex-shrink: 0; line-height: 1; padding: 0;
+  }
+  .mc-stepper button:hover { background: var(--card); color: var(--txt); }
+  .mc-stepper .btn-plus { background: var(--accent); color: white; }
+  .mc-stepper .btn-plus:hover { background: #0070d8; }
+  .mc-qty { font-size: 14px; font-weight: 800; color: var(--txt); flex: 1; text-align: center; }
+
+  .qty-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--accent); color: white;
+    font-size: 9px; font-weight: 800;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg);
+    opacity: 0; transform: scale(0);
+    transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .qty-badge.visible { opacity: 1; transform: scale(1); }
+
+  /* PLANNING */
+  .planning-wrap { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .planning-wrap::-webkit-scrollbar { width: 4px; }
+  .planning-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .planning-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--txt3); margin-bottom: 14px; }
+
+  .planning-legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: var(--txt3); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+
+  .slot-row {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 9px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  }
+  .slot-row:hover { border-color: var(--txt3); background: var(--card2); }
+  .slot-row.selected-row { border-color: var(--accent); background: rgba(10,132,255,0.07); }
+  .slot-row.over-row { border-color: var(--red); background: rgba(255,69,58,0.06); }
+
+  .slot-row-bg { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px; transition: width 0.4s ease; z-index: 0; }
+  .slot-row > * { position: relative; z-index: 1; }
+
+  .sr-time { font-size: 15px; font-weight: 800; color: var(--txt); letter-spacing: -0.01em; width: 48px; flex-shrink: 0; }
+  .sr-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .sr-bar-track { height: 5px; background: var(--bg); border-radius: 3px; overflow: visible; }
+  .sr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .sr-dots { display: flex; gap: 3px; flex-wrap: wrap; }
+  .sr-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .sr-count { font-size: 12px; font-weight: 800; flex-shrink: 0; width: 34px; text-align: right; }
+  .sr-status { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; width: 36px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🌸</div>
+    <div class="topbar-name">Flora Pampelonne <span>· Caisse Pizza</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="service-pill">
+      <span class="svc-label">Service</span>
+      <span class="svc-amount blurred" id="headerTotal">0€</span>
+      <span class="svc-count" id="headerCount">0 cmd</span>
+    </div>
+    <button class="reveal-btn" id="revealBtn" onclick="toggleBlur()">👁 Afficher</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- TICKET -->
+  <div class="ticket-col">
+    <div class="ticket-header">
+      <span class="ticket-header-title">Commande en cours</span>
+      <button class="ticket-clear-btn" onclick="clearAll()">Effacer</button>
+    </div>
+
+    <div class="ticket-order" id="ticketOrder">
+      <div class="ticket-empty">
+        <span class="ticket-empty-icon">🍕</span>
+        Sélectionnez des pizzas<br>dans le menu
+      </div>
+    </div>
+
+    <div class="slot-picker" id="slotPicker">
+      <div class="slot-picker-label">Créneau de pickup</div>
+      <div class="slot-suggestion" id="slotSuggestion" onclick="toggleDropdown()">
+        <div class="slot-sug-left">
+          <div class="slot-sug-time" id="sugTime">—</div>
+          <div class="slot-sug-status empty" id="sugStatus">Ajoutez des pizzas</div>
+        </div>
+        <div class="slot-sug-bar-wrap">
+          <div class="slot-sug-bar-track">
+            <div class="slot-sug-bar-fill" id="sugBarFill" style="width:0%"></div>
+          </div>
+          <div class="slot-sug-count" id="sugCount">—</div>
+        </div>
+      </div>
+      <div class="slot-dropdown" id="slotDropdown"></div>
+    </div>
+
+    <div class="ticket-footer">
+      <div class="ticket-total-row">
+        <span class="ticket-total-label">Total</span>
+        <span class="ticket-total-amount" id="currentTotal">0<span> €</span></span>
+      </div>
+      <button class="validate-btn" id="validateBtn" onclick="validateOrder()" disabled>
+        ✓ &nbsp;Encaisser
+      </button>
+    </div>
+
+    <div class="history-section">
+      <div class="history-toggle" onclick="toggleHistory()">
+        <span class="history-toggle-label">Historique du service</span>
+        <span class="hist-arrow" id="histArrow">▼</span>
+      </div>
+      <div class="history-body" id="historyBody"></div>
+      <div class="hist-footer">
+        <button class="reset-btn" onclick="resetService()">↺ &nbsp;Nouveau service</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DROITE -->
+  <div class="menu-col">
+    <div class="tabs-bar">
+      <button class="tab-btn active" id="tabMenu" onclick="switchTab('menu')">🍕 &nbsp;Menu</button>
+      <button class="tab-btn" id="tabPlanning" onclick="switchTab('planning')">📋 &nbsp;Planning créneaux</button>
+    </div>
+
+    <div class="tab-pane active" id="paneMenu">
+      <div class="menu-scroll">
+        <div class="menu-grid" id="menuGrid"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="panePlanning">
+      <div class="planning-wrap">
+        <div class="planning-title">Planning du service — 18h à 23h · Max 10 pizzas / créneau</div>
+        <div class="planning-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Disponible</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Quasi-plein (8-9)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Complet (≥10)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Sélectionné</div>
+        </div>
+        <div class="slots-grid" id="slotsGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PIZZAS = [
+  { name: '3 Fromages',      price: 16 },
+  { name: 'Armenienne',      price: 18 },
+  { name: 'Buffala',         price: 20 },
+  { name: 'Chorizo',         price: 16 },
+  { name: 'Chèvre',          price: 17 },
+  { name: 'Hawaï',           price: 16 },
+  { name: 'Italienne',       price: 18 },
+  { name: 'Jambon Fromage',  price: 15 },
+  { name: 'Margarita',       price: 14 },
+  { name: 'Napolitaine',     price: 15 },
+  { name: 'Orientale',       price: 18 },
+  { name: 'Paysanne',        price: 18 },
+  { name: 'Reine',           price: 16 },
+  { name: 'Royale',          price: 17 },
+  { name: 'Salami',          price: 15 },
+  { name: 'Thon',            price: 18 },
+  { name: 'Truffe',          price: 28 },
+  { name: 'Vege',            price: 18 },
+];
+
+const COLORS = [
+  '#FF6B6B','#4ECDC4','#45B7D1','#A78BFA','#F472B6',
+  '#6EE7B7','#FB923C','#60A5FA','#34D399','#F87171',
+  '#38BDF8','#FBBF24','#818CF8','#2DD4BF','#FB7185',
+  '#A3E635','#C084FC','#FCD34D',
+];
+
+const MAX = 10;
+
+// Generate slots 18:00 → 23:00 every 15 min
+const SLOTS = [];
+for (let h = 18; h <= 23; h++) {
+  for (let m = 0; m < 60; m += 15) {
+    if (h === 23 && m > 0) break;
+    SLOTS.push({
+      label: `${String(h).padStart(2,'0')}h${m === 0 ? '00' : m}`,
+      booked: 0,
+    });
+  }
+}
+
+let qtys = new Array(PIZZAS.length).fill(0);
+let orders = [];
+let orderCounter = 0;
+let histOpen = false;
+let totalVisible = false;
+let selectedSlotIdx = null;
+let dropdownOpen = false;
+
+// ── HELPERS ──
+function currentTotal() { return PIZZAS.reduce((s,p,i) => s + p.price * qtys[i], 0); }
+function currentCount() { return qtys.reduce((s,q) => s + q, 0); }
+
+function slotColor(booked) {
+  if (booked >= MAX) return 'var(--red)';
+  if (booked >= 8)   return 'var(--yellow)';
+  return 'var(--green)';
+}
+
+function slotPct(booked) { return Math.min(100, (booked / MAX) * 100); }
+
+// Earliest slot with capacity (force=false) or any slot (force=true)
+function suggestSlot(needed) {
+  for (let i = 0; i < SLOTS.length; i++) {
+    if (SLOTS[i].booked + needed <= MAX) return i;
+  }
+  return null;
+}
+
+// ── RENDER MENU ──
+function renderMenu() {
+  document.getElementById('menuGrid').innerHTML = PIZZAS.map((p, i) => {
+    const qty = qtys[i];
+    return `
+    <div class="menu-card ${qty > 0 ? 'active' : ''}">
+      <div class="qty-badge ${qty > 0 ? 'visible' : ''}">${qty}</div>
+      <div class="mc-name">${p.name}</div>
+      <div class="mc-price ${qty > 0 ? 'active' : ''}">${p.price} €</div>
+      <div class="mc-stepper">
+        <button onclick="change(${i},-1)">−</button>
+        <span class="mc-qty">${qty > 0 ? qty : '·'}</span>
+        <button class="btn-plus" onclick="change(${i},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER TICKET ──
+function renderTicket() {
+  const sel = PIZZAS.map((p,i) => ({...p, qty:qtys[i], color:COLORS[i]})).filter(p=>p.qty>0);
+  const el = document.getElementById('ticketOrder');
+  el.innerHTML = sel.length === 0
+    ? `<div class="ticket-empty"><span class="ticket-empty-icon">🍕</span>Sélectionnez des pizzas<br>dans le menu</div>`
+    : sel.map(p => `
+        <div class="ticket-line">
+          <div class="tl-color" style="background:${p.color}"></div>
+          <div class="tl-info">
+            <div class="tl-name">${p.name}</div>
+            <div class="tl-unit">${p.price} € / unité</div>
+          </div>
+          <div class="tl-qty">×${p.qty}</div>
+          <div class="tl-total">${p.qty * p.price} €</div>
+        </div>`).join('');
+
+  document.getElementById('currentTotal').innerHTML = `${currentTotal()}<span> €</span>`;
+  renderSlotPicker();
+  renderValidateBtn();
+}
+
+// ── SLOT PICKER ──
+function renderSlotPicker() {
+  const needed = currentCount();
+
+  // Auto-suggest earliest available if nothing selected
+  if (needed > 0 && selectedSlotIdx === null) {
+    const sug = suggestSlot(needed);
+    if (sug !== null) selectedSlotIdx = sug;
+  }
+
+  if (needed === 0) selectedSlotIdx = null;
+
+  const sugEl = document.getElementById('slotSuggestion');
+  const timeEl = document.getElementById('sugTime');
+  const statusEl = document.getElementById('sugStatus');
+  const barEl = document.getElementById('sugBarFill');
+  const countEl = document.getElementById('sugCount');
+
+  if (selectedSlotIdx === null || needed === 0) {
+    sugEl.className = 'slot-suggestion';
+    timeEl.textContent = '—';
+    statusEl.className = 'slot-sug-status empty';
+    statusEl.textContent = needed === 0 ? 'Ajoutez des pizzas' : '—';
+    barEl.style.width = '0%';
+    countEl.textContent = '—';
+  } else {
+    const s = SLOTS[selectedSlotIdx];
+    const afterBook = s.booked + needed;
+    const isOver = afterBook > MAX;
+
+    sugEl.className = 'slot-suggestion ' + (isOver ? 'overbooked' : 'selected');
+    timeEl.textContent = s.label;
+
+    const col = isOver ? 'var(--red)' : slotColor(afterBook);
+
+    if (isOver) {
+      statusEl.className = 'slot-sug-status over';
+      statusEl.textContent = `⚡ Forcé — ${afterBook}/${MAX}`;
+    } else if (afterBook >= 8) {
+      statusEl.className = 'slot-sug-status warn';
+      statusEl.textContent = `${MAX - afterBook} pizza(s) restantes`;
+    } else {
+      statusEl.className = 'slot-sug-status ok';
+      statusEl.textContent = `${MAX - afterBook} pizza(s) disponibles`;
+    }
+
+    barEl.style.width = Math.min(100, slotPct(afterBook)) + '%';
+    barEl.style.background = col;
+    countEl.innerHTML = `<span style="color:${col}">${afterBook}</span><span style="color:var(--txt3)">/${MAX}</span>`;
+  }
+
+  renderDropdown();
+}
+
+function renderDropdown() {
+  const needed = currentCount();
+  document.getElementById('slotDropdown').innerHTML = SLOTS.map((s, i) => {
+    const afterBook = s.booked + needed;
+    const isOver = afterBook > MAX;
+    const col = slotColor(s.booked);
+    const isSelected = i === selectedSlotIdx;
+    const forceLabel = isOver ? `<span class="slot-opt-force">⚡ forcer</span>` : '';
+
+    return `
+    <div class="slot-opt ${isSelected ? 'selected-opt' : ''} ${isOver ? 'over-opt' : ''}"
+         onclick="selectSlot(${i})">
+      <span class="slot-opt-time">${s.label}</span>
+      <div class="slot-opt-track">
+        <div class="slot-opt-fill" style="width:${slotPct(s.booked)}%;background:${col}"></div>
+      </div>
+      <span class="slot-opt-count" style="color:${col}">${s.booked}/${MAX}</span>
+      ${forceLabel}
+    </div>`;
+  }).join('');
+}
+
+function toggleDropdown() {
+  if (currentCount() === 0) return;
+  dropdownOpen = !dropdownOpen;
+  document.getElementById('slotDropdown').classList.toggle('open', dropdownOpen);
+}
+
+function selectSlot(idx) {
+  selectedSlotIdx = idx;
+  dropdownOpen = false;
+  document.getElementById('slotDropdown').classList.remove('open');
+  renderSlotPicker();
+  renderValidateBtn();
+}
+
+function renderValidateBtn() {
+  const btn = document.getElementById('validateBtn');
+  const total = currentTotal();
+  const needed = currentCount();
+
+  if (total === 0) {
+    btn.disabled = true;
+    btn.textContent = '✓  Encaisser';
+    btn.className = 'validate-btn';
+    return;
+  }
+
+  if (selectedSlotIdx === null) {
+    btn.disabled = true;
+    btn.textContent = 'Choisissez un créneau';
+    btn.className = 'validate-btn';
+    return;
+  }
+
+  const s = SLOTS[selectedSlotIdx];
+  const isOver = s.booked + needed > MAX;
+
+  btn.disabled = false;
+  btn.textContent = isOver
+    ? `⚡ Forcer — ${s.label}`
+    : `✓  Encaisser — ${s.label}`;
+  btn.className = 'validate-btn';
+}
+
+// ── PLANNING ──
+function renderPlanning() {
+  document.getElementById('slotsGrid').innerHTML = SLOTS.map((s, i) => {
+    const booked = s.booked;
+    const col = slotColor(booked);
+    const pct = slotPct(booked);
+    const isOver = booked > MAX;
+    const isSelected = i === selectedSlotIdx;
+
+    const dots = Array.from({length: Math.max(MAX, booked)}, (_, d) => {
+      const filled = d < booked;
+      const dotCol = filled ? (d >= MAX ? 'var(--red)' : col) : 'var(--border)';
+      return `<div class="sr-dot" style="background:${dotCol}"></div>`;
+    }).join('');
+
+    const statusLabel = isOver ? 'FORCÉ' : booked >= MAX ? 'COMPLET' : booked >= 8 ? 'QUASI' : `${MAX - booked} dispo`;
+    const statusColor = isOver ? 'var(--red)' : booked >= MAX ? 'var(--red)' : booked >= 8 ? 'var(--yellow)' : 'var(--green)';
+
+    return `
+    <div class="slot-row ${isSelected ? 'selected-row' : ''} ${isOver ? 'over-row' : ''}"
+         onclick="selectSlotFromPlanning(${i})">
+      <div class="slot-row-bg" style="width:${Math.min(100,pct)}%;background:${col};opacity:0.07"></div>
+      <div class="sr-time">${s.label}</div>
+      <div class="sr-bar-wrap">
+        <div class="sr-bar-track">
+          <div class="sr-bar-fill" style="width:${Math.min(100,pct)}%;background:${col}"></div>
+        </div>
+        <div class="sr-dots">${dots}</div>
+      </div>
+      <div class="sr-count" style="color:${col}">${booked}/${MAX}</div>
+      <div class="sr-status" style="color:${statusColor}">${statusLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectSlotFromPlanning(idx) {
+  selectedSlotIdx = idx;
+  renderSlotPicker();
+  renderValidateBtn();
+  renderPlanning();
+  switchTab('menu');
+}
+
+// ── HISTORIQUE ──
+function renderHistory() {
+  const body = document.getElementById('historyBody');
+  const total = orders.reduce((s,o) => s + o.amount, 0);
+  const n = orders.length;
+
+  document.getElementById('headerTotal').textContent = `${total}€`;
+  document.getElementById('headerCount').textContent = `${n} cmd`;
+
+  body.innerHTML = n === 0
+    ? `<div style="padding:12px 16px;font-size:11px;color:var(--txt3);text-align:center">Aucune commande validée</div>`
+    : [...orders].reverse().map((o, ri) => {
+        const realIdx = orders.length - 1 - ri;
+        return `
+        <div class="hist-row">
+          <span class="hist-num">#${String(o.id).padStart(2,'0')}</span>
+          <div class="hist-detail">
+            <div class="hist-summary">${o.summary}</div>
+            <div class="hist-time">${o.time}</div>
+          </div>
+          <span class="hist-slot">📍 ${o.slot}</span>
+          <span class="hist-amount">${o.amount} €</span>
+          <button class="hist-del" onclick="deleteOrder(${realIdx})">×</button>
+        </div>`;
+      }).join('');
+}
+
+// ── ACTIONS ──
+function change(i, delta) {
+  qtys[i] = Math.max(0, qtys[i] + delta);
+  selectedSlotIdx = null; // reset → re-suggest
+  renderMenu();
+  renderTicket();
+  renderPlanning();
+}
+
+function clearAll() {
+  qtys.fill(0);
+  selectedSlotIdx = null;
+  renderMenu();
+  renderTicket();
+  renderPlanning();
+}
+
+function validateOrder() {
+  const total = currentTotal();
+  const needed = currentCount();
+  if (total === 0 || selectedSlotIdx === null) return;
+
+  const slot = SLOTS[selectedSlotIdx];
+  slot.booked += needed;
+
+  orderCounter++;
+  const sel = PIZZAS.map((p,i) => ({...p, qty:qtys[i]})).filter(p=>p.qty>0);
+  const summary = sel.map(p => `${p.qty}× ${p.name}`).join(', ');
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}h${String(now.getMinutes()).padStart(2,'0')}`;
+
+  orders.push({ id: orderCounter, summary, amount: total, slot: slot.label, time });
+
+  const btn = document.getElementById('validateBtn');
+  btn.classList.add('flash');
+  setTimeout(() => btn.classList.remove('flash'), 350);
+
+  selectedSlotIdx = null;
+  clearAll();
+  renderHistory();
+  renderPlanning();
+
+  if (!histOpen) toggleHistory();
+}
+
+function deleteOrder(idx) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  orders.splice(idx, 1);
+  renderHistory();
+}
+
+function resetService() {
+  if (!orders.length) return;
+  if (!confirm('Réinitialiser le service ?')) return;
+  orders = [];
+  orderCounter = 0;
+  SLOTS.forEach(s => s.booked = 0);
+  selectedSlotIdx = null;
+  renderHistory();
+  renderPlanning();
+  renderSlotPicker();
+  renderValidateBtn();
+}
+
+function toggleHistory() {
+  histOpen = !histOpen;
+  document.getElementById('historyBody').classList.toggle('open', histOpen);
+  document.getElementById('histArrow').classList.toggle('open', histOpen);
+}
+
+function switchTab(tab) {
+  document.getElementById('tabMenu').classList.toggle('active', tab === 'menu');
+  document.getElementById('tabPlanning').classList.toggle('active', tab === 'planning');
+  document.getElementById('paneMenu').classList.toggle('active', tab === 'menu');
+  document.getElementById('panePlanning').classList.toggle('active', tab === 'planning');
+  if (tab === 'planning') renderPlanning();
+}
+
+function toggleBlur() {
+  totalVisible = !totalVisible;
+  document.getElementById('headerTotal').classList.toggle('blurred', !totalVisible);
+  document.getElementById('revealBtn').textContent = totalVisible ? '🙈 Masquer' : '👁 Afficher';
+}
+
+// ── INIT ──
+renderMenu();
+renderTicket();
+renderHistory();
+renderPlanning();
+</script>
+</body>
+</html>
