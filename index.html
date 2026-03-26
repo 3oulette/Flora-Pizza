@@ -761,6 +761,7 @@ function validateOrder() {
   const time = `${String(now.getHours()).padStart(2,'0')}h${String(now.getMinutes()).padStart(2,'0')}`;
 
   orders.push({ id: orderCounter, summary, amount: total, slot: slot.label, time });
+  saveState();
 
   const btn = document.getElementById('validateBtn');
   btn.classList.add('flash');
@@ -774,9 +775,22 @@ function validateOrder() {
   if (!histOpen) toggleHistory();
 }
 
-// deleteOrder remplacé ci-dessous
+function deleteOrder(idx) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  orders.splice(idx, 1);
+  saveState();
+  renderHistory();
+}
 
-// resetService remplacé ci-dessous
+function resetService() {
+  if (!orders.length) return;
+  if (!confirm('Réinitialiser le service ?')) return;
+  orders = []; orderCounter = 0;
+  SLOTS.forEach(s => s.booked = 0);
+  selectedSlotIdx = null;
+  saveState();
+  renderHistory(); renderPlanning(); renderSlotPicker(); renderValidateBtn();
+}
 
 function toggleHistory() {
   histOpen = !histOpen;
@@ -821,28 +835,7 @@ function loadState() {
   } catch(e) {}
 }
 
-// Surcharge des actions pour sauvegarder automatiquement
-const _origValidate = validateOrder;
-validateOrder = function() { _origValidate(); saveState(); };
 
-const _origDelete = deleteOrder;
-deleteOrder = function(idx) {
-  if (!confirm('Supprimer cette commande ?')) return;
-  orders.splice(idx, 1);
-  saveState();
-  renderHistory();
-};
-
-const _origReset = resetService;
-resetService = function() {
-  if (!orders.length) return;
-  if (!confirm('Réinitialiser le service ?')) return;
-  orders = []; orderCounter = 0;
-  SLOTS.forEach(s => s.booked = 0);
-  selectedSlotIdx = null;
-  saveState();
-  renderHistory(); renderPlanning(); renderSlotPicker(); renderValidateBtn();
-};
 
 // ── INIT ──
 loadState();
@@ -853,4 +846,3 @@ renderPlanning();
 </script>
 </body>
 </html>
-
