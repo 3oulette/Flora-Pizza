@@ -2,236 +2,295 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Sauvageonne Mégève — P&L Comparatif</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Sauvageonne Mégève — P&L</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'JetBrains Mono',monospace;background:#0b0b12;color:#c8c8d0;min-height:100vh;padding:10px;font-size:11px;-webkit-font-smoothing:antialiased;max-width:480px;margin:0 auto}
-.c{display:flex;gap:4px;flex-wrap:wrap}
-.b{padding:7px 11px;border-radius:6px;cursor:pointer;border:1px solid #252530;background:#12121a;color:#6b6b78;font-size:11px;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .12s}
-.b.on{background:#4ecdc4;color:#0b0b12;border-color:#4ecdc4;font-weight:600}
-.b:active{transform:scale(.96)}
+body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b0b12;color:#c8c8d0;padding:12px;font-size:11px;-webkit-font-smoothing:antialiased}
+#app{max-width:1200px;margin:0 auto}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.btn{padding:7px 11px;border-radius:6px;cursor:pointer;border:1px solid #252530;background:#12121a;color:#6b6b78;font-size:11px;font-family:inherit;user-select:none;transition:all .12s}
+.btn.on{background:#4ecdc4;color:#0b0b12;border-color:#4ecdc4;font-weight:600}
+.btn:hover:not(.on){border-color:#555;color:#aaa}
 input[type=range]{-webkit-appearance:none;flex:1;height:6px;background:#252530;border-radius:3px;outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:#4ecdc4;border-radius:50%;cursor:pointer}
-.kpi{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
-.k{background:#12121a;border:1px solid #252530;border-radius:8px;padding:10px 12px}
-.kt{font-size:9px;color:#6b6b78;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
-.kv{font-size:20px;font-weight:700}
-.ks{font-size:9px;color:#6b6b78;margin-top:1px}
-.slider{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#12121a;border-radius:8px;border:1px solid #252530;margin-bottom:8px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#4ecdc4;border-radius:50%;cursor:pointer}
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.kc{background:#12121a;border:1px solid #252530;border-radius:8px;padding:10px 12px}
+.kt{font-size:9px;color:#6b6b78;text-transform:uppercase;letter-spacing:.4px}
+.kv{font-size:20px;font-weight:700;margin:2px 0}
+.ks{font-size:9px;color:#6b6b78}
+.sbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#12121a;border-radius:8px;border:1px solid #252530;margin-bottom:8px}
+.g{color:#51cf66 !important}.r{color:#ff6b6b !important}.dd{color:#555 !important}
+.hi{color:#f0f0f5;font-weight:600}.lo{color:#666}
+.foot{margin-top:10px;font-size:9px;color:#444;text-align:center}
+
+/* === DESKTOP TABLE === */
+.dtbl{width:100%;border-collapse:collapse;background:#12121a;border-radius:8px;overflow:hidden;border:1px solid #252530}
+.dtbl th,.dtbl td{padding:5px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid #1a1a25;font-size:11px}
+.dtbl th{color:#6b6b78;font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;background:#12121a;z-index:2}
+.dtbl td:first-child,.dtbl th:first-child{text-align:left;position:sticky;left:0;background:#12121a;z-index:1;min-width:160px}
+.dtbl th:first-child{z-index:3}
+.dtbl .sep{border-left:2px solid #4ecdc4}
+.tr-rev td{color:#4ecdc4;font-weight:600}
+.tr-sub td{color:#f0f0f5;font-weight:600;border-top:2px solid #252530}
+.tr-tot td{color:#ffd43b;font-weight:700;border-top:2px solid #4ecdc4;border-bottom:2px solid #4ecdc4;background:#0f0f18}
+.tr-det td{color:#555;font-size:10px}
+.tr-det td:first-child{padding-left:18px}
+
+/* === MOBILE CARDS === */
+.mwrap{background:#12121a;border-radius:8px;border:1px solid #252530;overflow:hidden}
 .rw{padding:7px 10px;border-bottom:1px solid #1a1a25}
-.rw:active{background:#1a1a25}
-.rl{font-size:11px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:1px 0;gap:4px}
-.tg{font-size:8px;font-weight:600;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;flex-shrink:0}
-.va{text-align:right;flex:1;min-width:0}
-.ve{text-align:right;min-width:48px;font-size:10px;flex-shrink:0}
-.cat-revenue .rl{color:#4ecdc4;font-weight:600}
-.cat-subtotal{border-top:2px solid #252530}
-.cat-subtotal .rl{color:#f0f0f5;font-weight:600}
-.cat-total{border-top:2px solid #4ecdc4;border-bottom:2px solid #4ecdc4;background:#0f0f18}
-.cat-total .rl{color:#ffd43b;font-weight:700}
-.cat-detail .rl{color:#555;font-size:10px;padding-left:6px}
-.cat-detail .row{font-size:10px}
-.wrap{background:#12121a;border-radius:8px;border:1px solid #252530;overflow:hidden}
-.foot{margin-top:10px;font-size:8px;color:#333;text-align:center}
-.grn{color:#51cf66!important}.red{color:#ff6b6b!important}.dim{color:#555!important}
+.rl{font-size:11px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ln{display:flex;align-items:center;font-size:11px;padding:1px 0;gap:4px}
+.tg{font-size:8px;font-weight:600;padding:1px 5px;border-radius:3px;min-width:22px;text-align:center}
+.va{text-align:right;flex:1}.pe{text-align:right;min-width:46px;font-size:10px}
+.c-rev .rl{color:#4ecdc4;font-weight:600}
+.c-sub{border-top:2px solid #252530}.c-sub .rl{color:#f0f0f5;font-weight:600}
+.c-tot{border-top:2px solid #4ecdc4;border-bottom:2px solid #4ecdc4;background:#0f0f18}.c-tot .rl{color:#ffd43b;font-weight:700}
+.c-det .rl{color:#555;font-size:10px;padding-left:6px}.c-det .ln{font-size:10px}
+
+/* === RESPONSIVE === */
+#desktop{display:none}
+#mobile{display:block}
+@media(min-width:768px){
+  #desktop{display:block}
+  #mobile{display:none}
+  .kgrid{grid-template-columns:repeat(4,1fr)}
+  .chips-cmp{display:none}
+}
+@media(max-width:767px){
+  .kgrid{grid-template-columns:1fr 1fr}
+  .kv{font-size:17px}
+}
 </style>
 </head>
 <body>
+<div id="app">
 
-<div style="padding:2px 2px 8px">
-  <div style="font-size:15px;font-weight:700;color:#f0f0f5">SAUVAGEONNE MÉGÈVE</div>
-  <div id="subtitle" style="font-size:10px;color:#555"></div>
+<div style="padding:2px 2px 8px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+  <div>
+    <div style="font-size:16px;font-weight:700;color:#f0f0f5;letter-spacing:-.3px">SAUVAGEONNE MÉGÈVE</div>
+    <div id="sub" style="font-size:10px;color:#555"></div>
+  </div>
 </div>
 
-<div class="kpi" id="kpis"></div>
+<div class="kgrid" id="kpis"></div>
 
-<div class="c" style="margin-bottom:5px">
-  <button class="b on" onclick="setMode('cumul')" id="m_cumul">Cumul</button>
-  <button class="b" onclick="setMode('mensuel')" id="m_mensuel">Mois</button>
-  <button class="b" onclick="setMode('total')" id="m_total">Total</button>
+<div class="chips">
+  <button class="btn on" data-mode="cumul">Cumul</button>
+  <button class="btn" data-mode="mensuel">Mois</button>
+  <button class="btn" data-mode="total">Total</button>
   <span style="flex:1"></span>
-  <button class="b" onclick="setUnit('€')" id="u_eur">€</button>
-  <button class="b on" onclick="setUnit('K€')" id="u_keur">K€</button>
-  <button class="b" onclick="toggleDetail()" id="btn_det">▸</button>
+  <button class="btn" data-unit="€">€</button>
+  <button class="btn on" data-unit="K€">K€</button>
+  <button class="btn" id="detBtn">▸ Détail</button>
 </div>
-<div class="c" style="margin-bottom:8px">
-  <button class="b on" onclick="setCompare('all')" id="c_all">N / N-1 / Bdg</button>
-  <button class="b" onclick="setCompare('n1')" id="c_n1">N vs N-1</button>
-  <button class="b" onclick="setCompare('bdg')" id="c_bdg">N vs Budget</button>
-</div>
-
-<div class="slider" id="sliderWrap">
-  <span style="color:#555;font-size:9px" id="sliderLabel">→</span>
-  <input type="range" min="0" max="11" value="4" id="slider" oninput="setMonth(+this.value)">
-  <span style="color:#4ecdc4;font-weight:700;font-size:14px;min-width:30px;text-align:right" id="monthLabel"></span>
+<div class="chips chips-cmp">
+  <button class="btn on" data-cmp="all">N / N-1 / Bdg</button>
+  <button class="btn" data-cmp="n1">N vs N-1</button>
+  <button class="btn" data-cmp="bdg">N vs Bdg</button>
 </div>
 
-<div class="wrap" id="rows"></div>
+<div class="sbar" id="sbar">
+  <span id="slbl" style="color:#555;font-size:9px">Cumul →</span>
+  <input type="range" min="0" max="11" value="4" id="sl">
+  <span id="mlbl" style="color:#4ecdc4;font-weight:700;font-size:14px;min-width:30px;text-align:right"></span>
+</div>
+
+<!-- Desktop: classic table -->
+<div id="desktop" style="overflow:auto;border-radius:8px"></div>
+
+<!-- Mobile: stacked cards -->
+<div id="mobile"></div>
+
 <div class="foot" id="foot"></div>
+</div>
 
 <script>
-const MO=["Nov","Déc","Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct"];
-const D={
-"N-1":[
-{s:"CA",cat:"revenue",v:[0,407832,450529,517146,286287,45506,0,0,0,0,0,0,1707298]},
-{s:"Achats",cat:"cost",v:[-5607,-101730,-131893,-94789,-184791,110527,0,442,0,-982,-12682,8594,-412911]},
-{s:"MB",cat:"subtotal",v:[-5607,306102,318636,422357,101495,156033,0,442,0,-982,-12682,8594,1294387]},
-{s:"Personnel",cat:"cost",v:[-6392,-101090,-112438,-113153,-102040,-4704,-600,-600,0,-600,-1200,4186,-438631]},
-{s:"  Rémun.",cat:"detail",v:[-3930,-61414,-63406,-66737,-65055,-3524,0,0,0,0,0,0,-264065]},
-{s:"  Ch. soc.",cat:"detail",v:[-1862,-16517,-18699,-17877,-21267,-1646,0,0,0,0,0,0,-77869]},
-{s:"  Logement",cat:"detail",v:[-600,-23159,-30333,-28540,-15718,466,-600,-600,0,-600,-1200,4186,-96698]},
-{s:"Impôts",cat:"cost",v:[-2,-3113,-4194,-614,-614,-582,-3154,0,-580,-580,0,-4730,-18163]},
-{s:"Ch. ext.",cat:"cost",v:[-14060,-118702,-137927,-109017,-83423,-38852,-3634,-4470,-3872,-10688,-4691,-35836,-565173]},
-{s:"  Fourn.",cat:"detail",v:[-347,-2636,-4731,-4860,-6509,-2135,-534,-470,-370,-378,-1514,-313,-24797]},
-{s:"  Autres ch.",cat:"detail",v:[-5428,-47449,-57276,-46167,-18234,-28625,-330,-193,-389,-555,-406,-492,-205543]},
-{s:"  Loyers",cat:"detail",v:[-300,-12416,-10503,-10500,-12289,-495,-150,-150,-1151,-150,-300,-4025,-52431]},
-{s:"  Entretien",cat:"detail",v:[-5161,-6358,-8348,-4491,-5511,-2794,-431,-698,-431,-431,-698,-3548,-38899]},
-{s:"  Assur.",cat:"detail",v:[-874,-704,-704,-704,-704,-702,-702,-702,-923,-722,-702,-766,-8909]},
-{s:"  Presta IG",cat:"detail",v:[0,-24697,-25000,-25000,-25000,0,0,0,0,0,0,-22984,-122681]},
-{s:"  Honoraires",cat:"detail",v:[-564,-606,-1152,-777,-957,-537,-535,-405,-450,-7430,-950,-430,-14793]},
-{s:"  Pub",cat:"detail",v:[-250,-17208,-18281,-7198,-5421,-1746,-778,-900,0,-900,0,-2750,-55433]},
-{s:"  Déplac.",cat:"detail",v:[-972,-2382,-3667,-2108,-5185,-863,0,0,0,0,0,-429,-15605]},
-{s:"  Fr. banc.",cat:"detail",v:[-120,-4152,-8004,-6996,-3441,-849,-83,-862,-69,-32,-31,-72,-24710]},
-{s:"Autres expl.",cat:"cost",v:[2,-2,-471,2,-2,-2,-1,1,1,-1,0,-228,-700]},
-{s:"EBITDA",cat:"total",v:[-26060,83195,63605,199575,-84583,111893,-7388,-4627,-4452,-12851,-18573,-28013,271720]},
-{s:"Dot. amort.",cat:"cost",v:[0,-42000,-42000,-42000,-42000,0,0,0,0,0,0,0,-168000]},
-{s:"Rex",cat:"subtotal",v:[-26060,41195,21605,157575,-126583,111893,-7388,-4627,-4452,-12851,-18573,-28013,103720]},
-{s:"Rés. fin.",cat:"cost",v:[-407,0,-221,-375,-364,-353,-342,-331,-321,-310,-299,-29728,-33051]},
-{s:"Rés. exc.",cat:"cost",v:[0,0,-39529,0,618,0,0,-686,0,0,0,1538,-38059]},
-{s:"IS",cat:"cost",v:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-{s:"RN",cat:"total",v:[-26467,41195,-18144,157200,-126329,111540,-7731,-5645,-4772,-13161,-18872,-56204,32610]}
-],
-"N":[
-{s:"CA",cat:"revenue",v:[0,500386,542271,466245,285913,0,0,0,0,0,0,0,1794815]},
-{s:"Achats",cat:"cost",v:[-7475,-137133,-115430,-121200,-82046,0,0,0,0,0,0,0,-463285]},
-{s:"MB",cat:"subtotal",v:[-7475,363253,426840,345045,203867,0,0,0,0,0,0,0,1331530]},
-{s:"Personnel",cat:"cost",v:[-18221,-117500,-125747,-111044,-85841,0,0,0,0,0,0,0,-458353]},
-{s:"  Rémun.",cat:"detail",v:[-16333,-70473,-73674,-61494,-61720,0,0,0,0,0,0,0,-283694]},
-{s:"  Ch. soc.",cat:"detail",v:[-1288,-16360,-18184,-18884,-1295,0,0,0,0,0,0,0,-56010]},
-{s:"  Logement",cat:"detail",v:[-600,-30667,-33889,-30667,-22827,0,0,0,0,0,0,0,-118650]},
-{s:"Impôts",cat:"cost",v:[-2269,-1992,-16165,-60,-2455,0,0,0,0,0,0,0,-22941]},
-{s:"Ch. ext.",cat:"cost",v:[-66632,-159156,-131389,-120213,-119062,-183,0,0,0,0,0,0,-596636]},
-{s:"  Fourn.",cat:"detail",v:[-500,-2880,-4672,-6011,-4468,0,0,0,0,0,0,0,-18531]},
-{s:"  Autres ch.",cat:"detail",v:[-15715,-60406,-51418,-52350,-42725,0,0,0,0,0,0,0,-222614]},
-{s:"  Loyers",cat:"detail",v:[-150,-10500,-11668,-10500,-11659,0,0,0,0,0,0,0,-44477]},
-{s:"  Entretien",cat:"detail",v:[-42483,-27416,-11676,-3340,-21624,0,0,0,0,0,0,0,-106540]},
-{s:"  Assur.",cat:"detail",v:[-1023,-829,-829,-805,-805,0,0,0,0,0,0,0,-4291]},
-{s:"  Presta IG",cat:"detail",v:[0,-35064,-37959,-32726,-28292,0,0,0,0,0,0,0,-134041]},
-{s:"  Honoraires",cat:"detail",v:[-638,-1494,-443,-3020,-697,0,0,0,0,0,0,0,-6292]},
-{s:"  Pub",cat:"detail",v:[-5790,-15271,-5181,-3585,-3090,0,0,0,0,0,0,0,-32917]},
-{s:"  Déplac.",cat:"detail",v:[-116,-366,0,0,-605,0,0,0,0,0,0,0,-1087]},
-{s:"  Fr. banc.",cat:"detail",v:[-53,-4595,-7416,-7607,-4933,-183,0,0,0,0,0,0,-24787]},
-{s:"Autres expl.",cat:"cost",v:[40,1,4510,-5,0,0,0,0,0,0,0,592,5138]},
-{s:"EBITDA",cat:"total",v:[-94558,84605,158050,113723,-3491,-183,0,0,0,0,0,592,258738]},
-{s:"Dot. amort.",cat:"cost",v:[0,-42800,-42800,-42800,-42800,0,0,0,0,0,0,0,-171200]},
-{s:"Rex",cat:"subtotal",v:[-94558,41805,115250,70923,-46291,-183,0,0,0,0,0,592,87538]},
-{s:"Rés. fin.",cat:"cost",v:[-277,-266,-255,-244,-233,-222,-211,-200,-190,-179,-169,-159,-2605]},
-{s:"Rés. exc.",cat:"cost",v:[0,0,0,0,2103,0,0,0,0,0,0,0,2103]},
-{s:"IS",cat:"cost",v:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-{s:"RN",cat:"total",v:[-94835,41539,114995,70679,-44421,-405,-211,-200,-190,-179,-169,433,87036]}
-],
-"Budget":[
-{s:"CA",cat:"revenue",v:[0,616999,560999,573000,316999,0,0,0,0,0,0,0,2067997]},
-{s:"Achats",cat:"cost",v:[0,-141054,-128253,-130995,-72469,0,0,0,0,0,0,0,-472771]},
-{s:"MB",cat:"subtotal",v:[0,475945,432746,442005,244530,0,0,0,0,0,0,0,1595226]},
-{s:"Personnel",cat:"cost",v:[-5488,-107491,-111699,-108477,-99887,-5488,0,0,0,0,0,0,-438530]},
-{s:"  Rémun.",cat:"detail",v:[-4281,-60388,-61157,-61157,-61157,-4281,0,0,0,0,0,0,-252421]},
-{s:"  Ch. soc.",cat:"detail",v:[-1207,-17036,-17253,-17253,-17253,-1207,0,0,0,0,0,0,-71209]},
-{s:"  Logement",cat:"detail",v:[0,-30067,-33289,-30067,-21477,0,0,0,0,0,0,0,-114900]},
-{s:"Impôts",cat:"cost",v:[-2,-3113,-4194,-641,-641,-583,-3154,0,-580,-580,0,-4730,-18218]},
-{s:"Ch. ext.",cat:"cost",v:[-13997,-152304,-157215,-134917,-102023,-10785,-3633,-4470,-3873,-10640,-4615,-12852,-611324]},
-{s:"  Fourn.",cat:"detail",v:[-347,-2636,-4731,-4860,-6509,-2135,-534,-470,-370,-378,-1514,-313,-24797]},
-{s:"  Autres ch.",cat:"detail",v:[-5428,-57396,-61551,-54405,-38369,-622,-330,-193,-389,-507,-330,-492,-220012]},
-{s:"  Loyers",cat:"detail",v:[-300,-12416,-10504,-10500,-12289,-495,-150,-150,-1151,-150,-300,-4025,-52430]},
-{s:"  Entretien",cat:"detail",v:[-5162,-6358,-8349,-4491,-5511,-2795,-431,-698,-431,-431,-698,-3548,-38903]},
-{s:"  Assur.",cat:"detail",v:[-874,-704,-704,-704,-704,-702,-702,-702,-923,-722,-702,-766,-8909]},
-{s:"  Presta IG",cat:"detail",v:[0,-43190,-39270,-40110,-22190,0,0,0,0,0,0,0,-144760]},
-{s:"  Honoraires",cat:"detail",v:[-564,-606,-1152,-777,-957,-537,-535,-405,-450,-7430,-950,-430,-14793]},
-{s:"  Pub",cat:"detail",v:[-250,-18460,-19474,-9202,-5903,-1746,-778,-900,0,-900,0,-2750,-60363]},
-{s:"  Déplac.",cat:"detail",v:[-972,-2383,-3668,-2108,-5185,-863,0,0,0,0,0,-429,-15608]},
-{s:"  Fr. banc.",cat:"detail",v:[-56,-8061,-7552,-7545,-4236,-783,-83,-862,-69,-32,-31,-72,-29382]},
-{s:"Autres expl.",cat:"cost",v:[0,-5,0,-1,-1,-1,0,-1,0,-1,0,0,-10]},
-{s:"EBITDA",cat:"total",v:[-19487,213032,159638,197969,41978,-16857,-6787,-4471,-4453,-11221,-4615,-17582,527144]},
-{s:"Dot. amort.",cat:"cost",v:[0,-42800,-42800,-42800,-42800,0,0,0,0,0,0,0,-171200]},
-{s:"Rex",cat:"subtotal",v:[-19487,170232,116838,155169,-822,-16857,-6787,-4471,-4453,-11221,-4615,-17582,355944]},
-{s:"Rés. fin.",cat:"cost",v:[-217,-15217,-15217,-15217,-15217,-217,-217,-217,-217,-217,-217,-217,-62600]},
-{s:"Rés. exc.",cat:"cost",v:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-{s:"IS",cat:"cost",v:[0,0,0,0,0,0,0,0,0,0,0,0,0]},
-{s:"RN",cat:"total",v:[-19704,155015,101621,139952,-16039,-17074,-7004,-4688,-4670,-11438,-4832,-17799,293344]}
+var MO=["Nov","Déc","Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct"];
+var D={"N-1":[
+["CA","rev",[0,407832,450529,517146,286287,45506,0,0,0,0,0,0,1707298]],
+["Achats matières","cost",[-5607,-101730,-131893,-94789,-184791,110527,0,442,0,-982,-12682,8594,-412911]],
+["Marge brute","sub",[-5607,306102,318636,422357,101495,156033,0,442,0,-982,-12682,8594,1294387]],
+["Frais de personnel","cost",[-6392,-101090,-112438,-113153,-102040,-4704,-600,-600,0,-600,-1200,4186,-438631]],
+["  Rémunérations","det",[-3930,-61414,-63406,-66737,-65055,-3524,0,0,0,0,0,0,-264065]],
+["  Charges sociales","det",[-1862,-16517,-18699,-17877,-21267,-1646,0,0,0,0,0,0,-77869]],
+["  Logement personnel","det",[-600,-23159,-30333,-28540,-15718,466,-600,-600,0,-600,-1200,4186,-96698]],
+["Impôts et taxes","cost",[-2,-3113,-4194,-614,-614,-582,-3154,0,-580,-580,0,-4730,-18163]],
+["Charges externes","cost",[-14060,-118702,-137927,-109017,-83423,-38852,-3634,-4470,-3872,-10688,-4691,-35836,-565173]],
+["  Fournitures & énergie","det",[-347,-2636,-4731,-4860,-6509,-2135,-534,-470,-370,-378,-1514,-313,-24797]],
+["  Autres charges ext.","det",[-5428,-47449,-57276,-46167,-18234,-28625,-330,-193,-389,-555,-406,-492,-205543]],
+["  Loyers","det",[-300,-12416,-10503,-10500,-12289,-495,-150,-150,-1151,-150,-300,-4025,-52431]],
+["  Entretien & maint.","det",[-5161,-6358,-8348,-4491,-5511,-2794,-431,-698,-431,-431,-698,-3548,-38899]],
+["  Assurances","det",[-874,-704,-704,-704,-704,-702,-702,-702,-923,-722,-702,-766,-8909]],
+["  Prestation IG","det",[0,-24697,-25000,-25000,-25000,0,0,0,0,0,0,-22984,-122681]],
+["  Honoraires","det",[-564,-606,-1152,-777,-957,-537,-535,-405,-450,-7430,-950,-430,-14793]],
+["  Publicité","det",[-250,-17208,-18281,-7198,-5421,-1746,-778,-900,0,-900,0,-2750,-55433]],
+["  Déplacements","det",[-972,-2382,-3667,-2108,-5185,-863,0,0,0,0,0,-429,-15605]],
+["  Frais bancaires","det",[-120,-4152,-8004,-6996,-3441,-849,-83,-862,-69,-32,-31,-72,-24710]],
+["Autres prod. & ch. expl.","cost",[2,-2,-471,2,-2,-2,-1,1,1,-1,0,-228,-700]],
+["EBITDA","tot",[-26060,83195,63605,199575,-84583,111893,-7388,-4627,-4452,-12851,-18573,-28013,271720]],
+["Dot. amort. & prov.","cost",[0,-42000,-42000,-42000,-42000,0,0,0,0,0,0,0,-168000]],
+["Résultat d'exploitation","sub",[-26060,41195,21605,157575,-126583,111893,-7388,-4627,-4452,-12851,-18573,-28013,103720]],
+["Résultat financier","cost",[-407,0,-221,-375,-364,-353,-342,-331,-321,-310,-299,-29728,-33051]],
+["Résultat exceptionnel","cost",[0,0,-39529,0,618,0,0,-686,0,0,0,1538,-38059]],
+["IS et participation","cost",[0,0,0,0,0,0,0,0,0,0,0,0,0]],
+["Résultat net","tot",[-26467,41195,-18144,157200,-126329,111540,-7731,-5645,-4772,-13161,-18872,-56204,32610]]
+],"N":[
+["CA","rev",[0,500386,542271,466245,285913,0,0,0,0,0,0,0,1794815]],
+["Achats matières","cost",[-7475,-137133,-115430,-121200,-82046,0,0,0,0,0,0,0,-463285]],
+["Marge brute","sub",[-7475,363253,426840,345045,203867,0,0,0,0,0,0,0,1331530]],
+["Frais de personnel","cost",[-18221,-117500,-125747,-111044,-85841,0,0,0,0,0,0,0,-458353]],
+["  Rémunérations","det",[-16333,-70473,-73674,-61494,-61720,0,0,0,0,0,0,0,-283694]],
+["  Charges sociales","det",[-1288,-16360,-18184,-18884,-1295,0,0,0,0,0,0,0,-56010]],
+["  Logement personnel","det",[-600,-30667,-33889,-30667,-22827,0,0,0,0,0,0,0,-118650]],
+["Impôts et taxes","cost",[-2269,-1992,-16165,-60,-2455,0,0,0,0,0,0,0,-22941]],
+["Charges externes","cost",[-66632,-159156,-131389,-120213,-119062,-183,0,0,0,0,0,0,-596636]],
+["  Fournitures & énergie","det",[-500,-2880,-4672,-6011,-4468,0,0,0,0,0,0,0,-18531]],
+["  Autres charges ext.","det",[-15715,-60406,-51418,-52350,-42725,0,0,0,0,0,0,0,-222614]],
+["  Loyers","det",[-150,-10500,-11668,-10500,-11659,0,0,0,0,0,0,0,-44477]],
+["  Entretien & maint.","det",[-42483,-27416,-11676,-3340,-21624,0,0,0,0,0,0,0,-106540]],
+["  Assurances","det",[-1023,-829,-829,-805,-805,0,0,0,0,0,0,0,-4291]],
+["  Prestation IG","det",[0,-35064,-37959,-32726,-28292,0,0,0,0,0,0,0,-134041]],
+["  Honoraires","det",[-638,-1494,-443,-3020,-697,0,0,0,0,0,0,0,-6292]],
+["  Publicité","det",[-5790,-15271,-5181,-3585,-3090,0,0,0,0,0,0,0,-32917]],
+["  Déplacements","det",[-116,-366,0,0,-605,0,0,0,0,0,0,0,-1087]],
+["  Frais bancaires","det",[-53,-4595,-7416,-7607,-4933,-183,0,0,0,0,0,0,-24787]],
+["Autres prod. & ch. expl.","cost",[40,1,4510,-5,0,0,0,0,0,0,0,592,5138]],
+["EBITDA","tot",[-94558,84605,158050,113723,-3491,-183,0,0,0,0,0,592,258738]],
+["Dot. amort. & prov.","cost",[0,-42800,-42800,-42800,-42800,0,0,0,0,0,0,0,-171200]],
+["Résultat d'exploitation","sub",[-94558,41805,115250,70923,-46291,-183,0,0,0,0,0,592,87538]],
+["Résultat financier","cost",[-277,-266,-255,-244,-233,-222,-211,-200,-190,-179,-169,-159,-2605]],
+["Résultat exceptionnel","cost",[0,0,0,0,2103,0,0,0,0,0,0,0,2103]],
+["IS et participation","cost",[0,0,0,0,0,0,0,0,0,0,0,0,0]],
+["Résultat net","tot",[-94835,41539,114995,70679,-44421,-405,-211,-200,-190,-179,-169,433,87036]]
+],"B":[
+["CA","rev",[0,616999,560999,573000,316999,0,0,0,0,0,0,0,2067997]],
+["Achats matières","cost",[0,-141054,-128253,-130995,-72469,0,0,0,0,0,0,0,-472771]],
+["Marge brute","sub",[0,475945,432746,442005,244530,0,0,0,0,0,0,0,1595226]],
+["Frais de personnel","cost",[-5488,-107491,-111699,-108477,-99887,-5488,0,0,0,0,0,0,-438530]],
+["  Rémunérations","det",[-4281,-60388,-61157,-61157,-61157,-4281,0,0,0,0,0,0,-252421]],
+["  Charges sociales","det",[-1207,-17036,-17253,-17253,-17253,-1207,0,0,0,0,0,0,-71209]],
+["  Logement personnel","det",[0,-30067,-33289,-30067,-21477,0,0,0,0,0,0,0,-114900]],
+["Impôts et taxes","cost",[-2,-3113,-4194,-641,-641,-583,-3154,0,-580,-580,0,-4730,-18218]],
+["Charges externes","cost",[-13997,-152304,-157215,-134917,-102023,-10785,-3633,-4470,-3873,-10640,-4615,-12852,-611324]],
+["  Fournitures & énergie","det",[-347,-2636,-4731,-4860,-6509,-2135,-534,-470,-370,-378,-1514,-313,-24797]],
+["  Autres charges ext.","det",[-5428,-57396,-61551,-54405,-38369,-622,-330,-193,-389,-507,-330,-492,-220012]],
+["  Loyers","det",[-300,-12416,-10504,-10500,-12289,-495,-150,-150,-1151,-150,-300,-4025,-52430]],
+["  Entretien & maint.","det",[-5162,-6358,-8349,-4491,-5511,-2795,-431,-698,-431,-431,-698,-3548,-38903]],
+["  Assurances","det",[-874,-704,-704,-704,-704,-702,-702,-702,-923,-722,-702,-766,-8909]],
+["  Prestation IG","det",[0,-43190,-39270,-40110,-22190,0,0,0,0,0,0,0,-144760]],
+["  Honoraires","det",[-564,-606,-1152,-777,-957,-537,-535,-405,-450,-7430,-950,-430,-14793]],
+["  Publicité","det",[-250,-18460,-19474,-9202,-5903,-1746,-778,-900,0,-900,0,-2750,-60363]],
+["  Déplacements","det",[-972,-2383,-3668,-2108,-5185,-863,0,0,0,0,0,-429,-15608]],
+["  Frais bancaires","det",[-56,-8061,-7552,-7545,-4236,-783,-83,-862,-69,-32,-31,-72,-29382]],
+["Autres prod. & ch. expl.","cost",[0,-5,0,-1,-1,-1,0,-1,0,-1,0,0,-10]],
+["EBITDA","tot",[-19487,213032,159638,197969,41978,-16857,-6787,-4471,-4453,-11221,-4615,-17582,527144]],
+["Dot. amort. & prov.","cost",[0,-42800,-42800,-42800,-42800,0,0,0,0,0,0,0,-171200]],
+["Résultat d'exploitation","sub",[-19487,170232,116838,155169,-822,-16857,-6787,-4471,-4453,-11221,-4615,-17582,355944]],
+["Résultat financier","cost",[-217,-15217,-15217,-15217,-15217,-217,-217,-217,-217,-217,-217,-217,-62600]],
+["Résultat exceptionnel","cost",[0,0,0,0,0,0,0,0,0,0,0,0,0]],
+["IS et participation","cost",[0,0,0,0,0,0,0,0,0,0,0,0,0]],
+["Résultat net","tot",[-19704,155015,101621,139952,-16039,-17074,-7004,-4688,-4670,-11438,-4832,-17799,293344]]
 ]};
 
-let mode="cumul",month=4,detail=false,unit="K€",compare="all";
-const NR=D["N-1"].length;
+var mode="cumul",mo=4,det=false,unit="K€",cmp="all",NR=D["N-1"].length;
 
-function fm(v){if(!v)return"-";const a=Math.abs(Math.round(v)).toLocaleString("fr-FR");return v<0?"("+a+")":a}
-function fk(v){if(!v)return"-";const a=Math.abs(Math.round(v/1000)).toLocaleString("fr-FR");return v<0?"("+a+")":a}
-function fp(v){if(v==null||!isFinite(v))return"-";const a=Math.abs(v*100).toFixed(1)+"%";return v<0?"("+a+")":"+"+a}
-function f(v){return unit==="K€"?fk(v):fm(v)}
-function cum(a,m){let s=0;for(let i=0;i<=m;i++)s+=a[i];return s}
-function gv(ds,ri){const r=D[ds]?.[ri];if(!r)return 0;return mode==="cumul"?cum(r.v,month):mode==="total"?r.v[12]:r.v[month]}
-function pg(c){return c==="revenue"||c==="subtotal"||c==="total"}
-function ec(d,c){if(Math.abs(d)<1)return"dim";return(pg(c)?d>0:d<0)?"grn":"red"}
+function fm(v){if(!v)return"-";var a=Math.abs(Math.round(v)).toLocaleString("fr-FR");return v<0?"("+a+")":a}
+function fk(v){if(!v)return"-";var a=Math.abs(Math.round(v/1000)).toLocaleString("fr-FR");return v<0?"("+a+")":a}
+function fp(v){if(v==null||!isFinite(v))return"-";var a=Math.abs(v*100).toFixed(1)+"%";return v<0?"("+a+")":"+"+a}
+function ff(v){return unit==="K€"?fk(v):fm(v)}
+function cum(a,m){var s=0;for(var i=0;i<=m;i++)s+=a[i];return s}
+function gv(ds,i){var r=D[ds]?D[ds][i]:null;if(!r)return 0;var v=r[2];if(mode==="cumul")return cum(v,mo);if(mode==="total")return v[12];return v[mo]}
+function pg(c){return c==="rev"||c==="sub"||c==="tot"}
+function ec(d,c){if(Math.abs(d)<1)return"dd";return(pg(c)?d>0:d<0)?"g":"r"}
+function trc(c){return{rev:"tr-rev",sub:"tr-sub",tot:"tr-tot",det:"tr-det"}[c]||""}
+function mcc(c){return{rev:"c-rev",sub:"c-sub",tot:"c-tot",det:"c-det"}[c]||""}
 
-function sel(pre,id,ids){ids.forEach(x=>{document.getElementById(pre+x).classList.toggle("on",x===id)})}
-
-function setMode(m){mode=m;sel("m_",m,["cumul","mensuel","total"]);
-  document.getElementById("sliderWrap").style.display=m==="total"?"none":"flex";
-  document.getElementById("sliderLabel").textContent=m==="cumul"?"→":"";render()}
-function setMonth(m){month=m;render()}
-function setUnit(u){unit=u;sel("u_",u==="€"?"eur":"keur",["eur","keur"]);render()}
-function setCompare(c){compare=c;sel("c_",c,["all","n1","bdg"]);render()}
-function toggleDetail(){detail=!detail;document.getElementById("btn_det").textContent=detail?"▾":"▸";
-  document.getElementById("btn_det").classList.toggle("on",detail);render()}
-
-function render(){
-  const am=mode==="total"?12:month;
-  const pl=mode==="cumul"?"Nov → "+MO[month]:mode==="mensuel"?MO[month]:"Total exercice";
-  document.getElementById("subtitle").textContent="P&L comparatif · "+pl;
-  document.getElementById("monthLabel").textContent=MO[month];
+function draw(){
+  var pl=mode==="cumul"?"Cumul Nov → "+MO[mo]:mode==="mensuel"?MO[mo]:"Total exercice";
+  document.getElementById("sub").textContent="P&L comparatif · "+pl;
+  document.getElementById("mlbl").textContent=MO[mo];
+  document.getElementById("slbl").textContent=mode==="cumul"?"Cumul →":"Mois :";
+  document.getElementById("sbar").style.display=mode==="total"?"none":"flex";
+  document.querySelectorAll("[data-mode]").forEach(function(b){b.classList.toggle("on",b.dataset.mode===mode)});
+  document.querySelectorAll("[data-unit]").forEach(function(b){b.classList.toggle("on",b.dataset.unit===unit)});
+  document.querySelectorAll("[data-cmp]").forEach(function(b){b.classList.toggle("on",b.dataset.cmp===cmp)});
+  var db=document.getElementById("detBtn");
+  db.classList.toggle("on",det);db.textContent=det?"▾ Détail":"▸ Détail";
 
   // KPIs
-  const caN=gv("N",0),caN1=gv("N-1",0),caB=gv("Budget",0),mbN=gv("N",2);
-  const eN=gv("N",20),eB=gv("Budget",20),rnN=gv("N",NR-1);
-  const kpis=[
-    {t:"CA (N)",v:fk(caN),s:caN1?("vs N-1: "+((caN/caN1-1)*100).toFixed(0)+"%"):"",c:"#4ecdc4"},
-    {t:"Taux MB",v:caN?(mbN/caN*100).toFixed(1)+"%":"-",s:"MB: "+fk(mbN),c:"#74b9ff"},
-    {t:"EBITDA (N)",v:fk(eN),s:"Bdg: "+fk(eB),c:eN>=eB?"#51cf66":"#ff6b6b"},
-    {t:"RN (N)",v:fk(rnN),s:"",c:rnN>=0?"#51cf66":"#ff6b6b"}
+  var caN=gv("N",0),caN1=gv("N-1",0),mbN=gv("N",2);
+  var eN=gv("N",20),eB=gv("B",20),rnN=gv("N",NR-1);
+  var kk=[
+    ["CA (N)",fk(caN),caN1?"vs N-1: "+((caN/caN1-1)*100).toFixed(0)+"%":"","#4ecdc4"],
+    ["Taux MB",caN?(mbN/caN*100).toFixed(1)+"%":"-","MB: "+fk(mbN),"#74b9ff"],
+    ["EBITDA (N)",fk(eN),"Bdg: "+fk(eB),eN>=eB?"#51cf66":"#ff6b6b"],
+    ["RN (N)",fk(rnN),"",rnN>=0?"#51cf66":"#ff6b6b"]
   ];
-  document.getElementById("kpis").innerHTML=kpis.map(k=>
-    `<div class="k"><div class="kt">${k.t}</div><div class="kv" style="color:${k.c}">${k.v}</div>${k.s?`<div class="ks">${k.s}</div>`:""}</div>`
-  ).join("");
+  var kh="";
+  for(var j=0;j<kk.length;j++){var k=kk[j];kh+='<div class="kc"><div class="kt">'+k[0]+'</div><div class="kv" style="color:'+k[3]+'">'+k[1]+'</div>'+(k[2]?'<div class="ks">'+k[2]+'</div>':'')+'</div>';}
+  document.getElementById("kpis").innerHTML=kh;
 
-  // Rows
-  let h="";
-  for(let i=0;i<NR;i++){
-    const r=D["N-1"][i];
-    if(!detail&&r.cat==="detail")continue;
-    const vN1=gv("N-1",i),vN=gv("N",i),vB=gv("Budget",i);
-    const dN1=vN-vN1,dB=vN-vB;
-    const pN1=vN1?dN1/Math.abs(vN1):null,pB=vB?dB/Math.abs(vB):null;
-    const eN1=ec(dN1,r.cat),eB2=ec(dB,r.cat);
-
-    h+=`<div class="rw cat-${r.cat}"><div class="rl">${r.s}</div><div class="rv">`;
-    if(compare==="all"){
-      h+=`<div class="row"><span class="tg" style="background:#1e3a38;color:#4ecdc4">N</span><span class="va" style="color:#f0f0f5;font-weight:600">${f(vN)}</span></div>`;
-      h+=`<div class="row"><span class="tg" style="background:#1a1a2a;color:#666">N-1</span><span class="va" style="color:#666">${f(vN1)}</span><span class="ve ${eN1}">${fp(pN1)}</span></div>`;
-      h+=`<div class="row"><span class="tg" style="background:#2a2a1a;color:#ffa94d">B</span><span class="va" style="color:#666">${f(vB)}</span><span class="ve ${eB2}">${fp(pB)}</span></div>`;
-    } else if(compare==="n1"){
-      h+=`<div class="row"><span style="color:#666;flex:1">${f(vN1)}</span><span style="color:#f0f0f5;font-weight:600;flex:1;text-align:right">${f(vN)}</span><span class="ve ${eN1}" style="font-weight:500">${f(dN1)}</span><span class="ve ${eN1}">${fp(pN1)}</span></div>`;
-    } else {
-      h+=`<div class="row"><span style="color:#ffa94d;flex:1">${f(vB)}</span><span style="color:#f0f0f5;font-weight:600;flex:1;text-align:right">${f(vN)}</span><span class="ve ${eB2}" style="font-weight:500">${f(dB)}</span><span class="ve ${eB2}">${fp(pB)}</span></div>`;
-    }
-    h+=`</div></div>`;
+  // === DESKTOP TABLE ===
+  var t='<table class="dtbl"><thead><tr><th>'+pl+'</th><th>N-1</th><th>N</th><th>Budget</th><th class="sep">Δ N vs N-1</th><th>Δ %</th><th class="sep">Δ N vs Bdg</th><th>Δ %</th></tr></thead><tbody>';
+  for(var i=0;i<NR;i++){
+    var r=D["N-1"][i],cat=r[1];
+    if(!det&&cat==="det")continue;
+    var vN1=gv("N-1",i),vN=gv("N",i),vB=gv("B",i);
+    var dN1=vN-vN1,dB=vN-vB;
+    var pN1=vN1?dN1/Math.abs(vN1):null,pB=vB?dB/Math.abs(vB):null;
+    var eN1=ec(dN1,cat),eB2=ec(dB,cat);
+    t+='<tr class="'+trc(cat)+'">';
+    t+='<td>'+r[0]+'</td>';
+    t+='<td>'+ff(vN1)+'</td>';
+    t+='<td style="color:#f0f0f5;font-weight:600">'+ff(vN)+'</td>';
+    t+='<td>'+ff(vB)+'</td>';
+    t+='<td class="sep '+eN1+'">'+ff(dN1)+'</td>';
+    t+='<td class="'+eN1+'">'+fp(pN1)+'</td>';
+    t+='<td class="sep '+eB2+'">'+ff(dB)+'</td>';
+    t+='<td class="'+eB2+'">'+fp(pB)+'</td>';
+    t+='</tr>';
   }
-  document.getElementById("rows").innerHTML=h;
-  document.getElementById("foot").textContent="N-1 retraité (dot. amort. & rés. fin.) · HT "+unit+" · Vert = favorable · Rouge = défavorable";
+  t+='</tbody></table>';
+  document.getElementById("desktop").innerHTML=t;
+
+  // === MOBILE CARDS ===
+  var h='<div class="mwrap">';
+  for(var i=0;i<NR;i++){
+    var r=D["N-1"][i],cat=r[1];
+    if(!det&&cat==="det")continue;
+    var vN1=gv("N-1",i),vN=gv("N",i),vB=gv("B",i);
+    var dN1=vN-vN1,dB=vN-vB;
+    var pN1=vN1?dN1/Math.abs(vN1):null,pB=vB?dB/Math.abs(vB):null;
+    var eN1=ec(dN1,cat),eB2=ec(dB,cat);
+    // Shorter labels for mobile
+    var sl=r[0].replace("Résultat d'exploitation","Rex").replace("Résultat financier","Rés. fin.").replace("Résultat exceptionnel","Rés. exc.").replace("Résultat net","RN").replace("Frais de personnel","Personnel").replace("Charges externes","Ch. ext.").replace("Achats matières","Achats").replace("Marge brute","MB").replace("Impôts et taxes","Impôts").replace("Dot. amort. & prov.","Dot. amort.").replace("Autres prod. & ch. expl.","Autres expl.").replace("IS et participation","IS").replace("Chiffre d'affaires","CA");
+
+    h+='<div class="rw '+mcc(cat)+'"><div class="rl">'+sl+'</div>';
+    if(cmp==="all"){
+      h+='<div class="ln"><span class="tg" style="background:#1e3a38;color:#4ecdc4">N</span><span class="va hi">'+ff(vN)+'</span></div>';
+      h+='<div class="ln"><span class="tg" style="background:#1a1a2a;color:#666">N-1</span><span class="va lo">'+ff(vN1)+'</span><span class="pe '+eN1+'">'+fp(pN1)+'</span></div>';
+      h+='<div class="ln"><span class="tg" style="background:#2a2a1a;color:#ffa94d">B</span><span class="va lo">'+ff(vB)+'</span><span class="pe '+eB2+'">'+fp(pB)+'</span></div>';
+    } else if(cmp==="n1"){
+      h+='<div class="ln"><span class="lo" style="flex:1">'+ff(vN1)+'</span><span class="hi" style="flex:1;text-align:right">'+ff(vN)+'</span><span class="pe '+eN1+'" style="font-weight:500">'+ff(dN1)+'</span><span class="pe '+eN1+'">'+fp(pN1)+'</span></div>';
+    } else {
+      h+='<div class="ln"><span style="color:#ffa94d;flex:1">'+ff(vB)+'</span><span class="hi" style="flex:1;text-align:right">'+ff(vN)+'</span><span class="pe '+eB2+'" style="font-weight:500">'+ff(dB)+'</span><span class="pe '+eB2+'">'+fp(pB)+'</span></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  document.getElementById("mobile").innerHTML=h;
+  document.getElementById("foot").textContent="N-1 retraité (dot. amort. & rés. fin.) · Montants HT "+unit+" · Vert = favorable · Rouge = défavorable";
 }
 
-render();
+document.querySelectorAll("[data-mode]").forEach(function(b){b.addEventListener("click",function(){mode=this.dataset.mode;draw()})});
+document.querySelectorAll("[data-unit]").forEach(function(b){b.addEventListener("click",function(){unit=this.dataset.unit;draw()})});
+document.querySelectorAll("[data-cmp]").forEach(function(b){b.addEventListener("click",function(){cmp=this.dataset.cmp;draw()})});
+document.getElementById("detBtn").addEventListener("click",function(){det=!det;draw()});
+document.getElementById("sl").addEventListener("input",function(){mo=+this.value;draw()});
+
+draw();
 </script>
 </body>
 </html>
