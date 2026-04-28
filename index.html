@@ -273,10 +273,13 @@
 
   .history-toggle {
     padding: 9px 16px; display: flex; align-items: center;
-    justify-content: space-between; cursor: pointer; user-select: none;
+    justify-content: space-between; gap: 8px; user-select: none;
   }
 
-  .history-toggle-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+  .history-toggle-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3);
+    display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1;
+  }
   .hist-arrow { font-size: 10px; color: var(--txt3); transition: transform 0.2s; }
   .hist-arrow.open { transform: rotate(180deg); }
   .history-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
@@ -295,11 +298,11 @@
   .hist-del { background: none; border: none; color: var(--txt3); cursor: pointer; font-size: 14px; padding: 0 2px; transition: color 0.1s; }
   .hist-del:hover { color: var(--red); }
 
-  .hist-footer { padding: 8px 16px; border-top: 1px solid var(--sep); }
   .reset-btn {
-    width: 100%; background: none; border: 1px solid var(--border); border-radius: 7px;
-    padding: 7px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
-    color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+    background: none; border: 1px solid var(--border); border-radius: 7px;
+    padding: 5px 10px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    color: var(--txt3); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+    flex-shrink: 0;
   }
   .reset-btn:hover { border-color: var(--red); color: var(--red); }
 
@@ -331,16 +334,16 @@
 
   .menu-card {
     background: var(--card); border: 1.5px solid var(--border);
-    border-radius: 10px; padding: 11px 10px 10px;
+    border-radius: 10px; padding: 14px 12px 12px;
     cursor: pointer; transition: all 0.12s;
-    display: flex; flex-direction: column; gap: 7px;
+    display: flex; flex-direction: column; gap: 9px;
     user-select: none; position: relative;
   }
   .menu-card:hover { border-color: var(--txt3); background: var(--card2); }
   .menu-card.active { border-color: var(--accent); background: rgba(10,132,255,0.1); }
 
-  .mc-name { font-size: 11.5px; font-weight: 700; color: var(--txt); line-height: 1.25; }
-  .mc-price { font-size: 12px; font-weight: 700; color: var(--txt2); }
+  .mc-name { font-size: 16px; font-weight: 700; color: var(--txt); line-height: 1.2; }
+  .mc-price { font-size: 15px; font-weight: 700; color: var(--txt2); }
   .mc-price.active { color: var(--accent2); }
 
   .mc-stepper {
@@ -348,15 +351,15 @@
     background: var(--bg); border-radius: 7px; overflow: hidden;
   }
   .mc-stepper button {
-    width: 30px; height: 27px; border: none; background: transparent;
-    color: var(--txt2); font-size: 18px; font-weight: 600; cursor: pointer;
+    width: 36px; height: 32px; border: none; background: transparent;
+    color: var(--txt2); font-size: 22px; font-weight: 600; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.1s, color 0.1s; flex-shrink: 0; line-height: 1; padding: 0;
   }
   .mc-stepper button:hover { background: var(--card); color: var(--txt); }
   .mc-stepper .btn-plus { background: var(--accent); color: white; }
   .mc-stepper .btn-plus:hover { background: #0070d8; }
-  .mc-qty { font-size: 14px; font-weight: 800; color: var(--txt); flex: 1; text-align: center; }
+  .mc-qty { font-size: 17px; font-weight: 800; color: var(--txt); flex: 1; text-align: center; }
 
   .qty-badge {
     position: absolute; top: -6px; right: -6px;
@@ -483,14 +486,14 @@
     </div>
 
     <div class="history-section">
-      <div class="history-toggle" onclick="toggleHistory()">
-        <span class="history-toggle-label">Historique du service</span>
-        <span class="hist-arrow" id="histArrow">▼</span>
+      <div class="history-toggle">
+        <span class="history-toggle-label" onclick="toggleHistory()">
+          Historique du service
+          <span class="hist-arrow" id="histArrow">▼</span>
+        </span>
+        <button class="reset-btn" onclick="resetService()">↺ Nouveau service</button>
       </div>
       <div class="history-body" id="historyBody"></div>
-      <div class="hist-footer">
-        <button class="reset-btn" onclick="resetService()">↺ &nbsp;Nouveau service</button>
-      </div>
     </div>
   </div>
 
