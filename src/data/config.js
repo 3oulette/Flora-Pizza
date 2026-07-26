@@ -30,6 +30,11 @@ export const TOUS_POSTES = EQUIPE_KEYS.flatMap((eq) =>
   EQUIPES[eq].postes.map((poste) => ({ equipe: eq, poste })),
 )
 
+// Poste → équipe (les postes sont uniques à une équipe).
+export const POSTE_EQUIPE = Object.fromEntries(
+  EQUIPE_KEYS.flatMap((eq) => EQUIPES[eq].postes.map((p) => [p, eq])),
+)
+
 // --- Besoins constants : slots à remplir chaque jour ---
 // Chaque entrée = { equipe, poste, count }
 export const BESOINS = {
@@ -77,29 +82,11 @@ export const EQUIPE_FIXE = [
 // d'abord, puis même équipe, puis le reste) et à pré-affecter la semaine. Jamais
 // de blocage : n'importe qui peut aller sur n'importe quel slot.
 // ============================================================================
-export const DEFAULT_POSTE = {
-  Claudia: { equipe: 'salle', poste: 'Chef de rang' },
-  Candice: { equipe: 'salle', poste: 'Caisse' },
-  Lou: { equipe: 'salle', poste: 'Barman' },
-  Anouk: { equipe: 'salle', poste: 'Chef de rang' },
-  Ludo: { equipe: 'cuisine', poste: 'Pizzaiolo' },
-  Mathis: { equipe: 'salle', poste: 'Chef de rang' },
-  Axel: { equipe: 'salle', poste: 'Runner food' },
-  Thomas: { equipe: 'cuisine', poste: 'Pizzaiolo' },
-  Nico: { equipe: 'cuisine', poste: 'Chef' },
-  Santi: { equipe: 'cuisine', poste: 'Chef de partie' },
-  Daniel: { equipe: 'cuisine', poste: 'Chef de partie' },
-  Alexis: { equipe: 'salle', poste: 'Runner boisson' },
-  Chaher: { equipe: 'cuisine', poste: 'Chef de partie' },
-  Fabien: { equipe: 'cuisine', poste: 'Chef de partie' },
-  Ildiko: { equipe: 'cuisine', poste: 'Plonge' },
-  Romane: { equipe: 'salle', poste: 'Joker' },
-  Adrien: { equipe: 'salle', poste: 'Joker' },
-  Paola: { equipe: 'salle', poste: 'Caisse' },
-  Coco: { equipe: 'cuisine', poste: 'Plonge' },
-  Cloe: { equipe: 'salle', poste: 'Chef de rang' },
-  Antoine: { equipe: 'salle', poste: 'Barman' },
-}
+// Vidé volontairement : à définir par le manager dans l'app
+// (Données ▸ Postes par défaut). Sert uniquement à ordonner les noms dans le
+// sélecteur d'un slot ; n'affecte jamais le planning pré-chargé (défini
+// explicitement plus bas dans PRELOAD_PLAN).
+export const DEFAULT_POSTE = {}
 
 // --- Extras hors équipe connus au départ (mémorisés, réutilisables) ---
 export const EXTRAS_INITIAUX = ['Franco']
@@ -139,31 +126,273 @@ export const SHIFT_COLOR = {
 // ============================================================================
 export const PRELOAD_WEEK_START = '2026-07-27'
 
-export const PRELOAD_SHIFTS = {
-  Claudia: ['J', 'R', 'J', 'J', 'MM', 'J', 'J'],
-  Candice: ['J', 'J', 'MM', 'MM', 'J', 'R', 'MM'],
-  Lou: ['MM', 'MM', 'R', 'MM', 'MM', 'MM', ''],
-  Anouk: ['R', 'MM', 'J', 'S', 'S', 'MM', 'J'],
-  Ludo: ['S', 'S', 'R', 'S', 'S', 'S', 'S'],
-  Mathis: ['S', 'R', 'S', 'S', 'S', 'S', 'M+S'],
-  Axel: ['R', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Thomas: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Nico: ['MS', 'J', 'MS', 'MS', 'MS', 'MS', 'MS'],
-  Santi: ['MM', 'R', 'J', 'J', 'J', 'J', 'J'],
-  Daniel: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Alexis: ['S', 'MS', 'S', 'S', 'S', 'S', 'S'],
-  Chaher: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Fabien: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Ildiko: ['M+S', 'M+S', 'M+S', 'M+S', 'M+S', 'M+S', 'R'],
-  Romane: ['', 'S', '', 'S', '', 'S', ''],
-  Adrien: ['S', 'S', '', '', 'S', '', ''],
-  Paola: ['S', 'S', 'S', '', '', '', ''],
-  Coco: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Cloe: ['S', 'S', 'S', 'S', 'S', 'S', 'S'],
-  Antoine: ['', '', 'S', '', '', 'S', 'S'],
-  // Extra hors équipe
-  Franco: ['', '', '', '', '', '', 'S'],
-}
+// Version de la graine de pré-chargement. À incrémenter pour forcer le
+// rechargement du planning pré-chargé (écrase la semaine 27/07 sauvegardée
+// localement, avec backup automatique). Les éditions ultérieures restent
+// conservées tant que ce numéro ne change pas.
+export const PRELOAD_SEED_VERSION = 2
+
+// Helpers de saisie : F = affectation fixe, X = affectation extra.
+const F = (poste, person) => ({ poste, person, extra: false })
+const X = (poste, person) => ({ poste, person, extra: true })
+
+// ----------------------------------------------------------------------------
+// Planning explicite, jour par jour (Lun → Dim), tel que fourni.
+// Chaque personne est placée sur un slot précis ; les slots des besoins non
+// listés restent « à pourvoir ».
+// ----------------------------------------------------------------------------
+export const PRELOAD_PLAN = [
+  // 0 — LUNDI 27 juil.
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      X('Chef de rang', 'Claudia'),
+      X('Chef de rang', 'Candice'),
+      X('Runner boisson', 'Adrien'),
+      X('Runner food', 'Paola'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: ['Anouk', 'Axel'],
+  },
+  // 1 — MARDI 28 juil.
+  {
+    matin: [
+      F('Chef de partie', 'Nico'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Candice'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Alexis'),
+      F('Barman', 'Candice'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Axel'),
+      X('Chef de rang', 'Romane'),
+      X('Chef de rang', 'Candice'),
+      X('Runner boisson', 'Adrien'),
+      X('Runner food', 'Paola'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: ['Santi', 'Claudia', 'Mathis'],
+  },
+  // 2 — MERCREDI 29 juil.
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Candice'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    midi: [
+      X('Chef', 'Alexis'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Candice'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      X('Chef de partie', 'Santi'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      X('Barman', 'Paola'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      F('Chef de rang', 'Axel'),
+      X('Chef de rang', 'Anouk'),
+      F('Runner boisson', 'Claudia'),
+      F('Runner food', 'Antoine'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: ['Lou', 'Ludo'],
+  },
+  // 3 — JEUDI 30 juil.
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      X('Chef de partie', 'Santi'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      F('Chef de rang', 'Axel'),
+      F('Chef de rang', 'Anouk'),
+      F('Runner boisson', 'Claudia'),
+      X('Runner food', 'Romane'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: [],
+  },
+  // 4 — VENDREDI 31 juil.
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Candice'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      X('Chef de partie', 'Santi'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      F('Chef de rang', 'Axel'),
+      F('Chef de rang', 'Anouk'),
+      X('Runner boisson', 'Candice'),
+      X('Runner food', 'Adrien'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: [],
+  },
+  // 5 — SAMEDI 1 août
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Lou'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      X('Chef de partie', 'Santi'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      F('Plonge', 'Ildiko'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      F('Chef de rang', 'Axel'),
+      X('Chef de rang', 'Romane'),
+      F('Runner boisson', 'Claudia'),
+      F('Runner food', 'Antoine'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: ['Candice'],
+  },
+  // 6 — DIMANCHE 2 août
+  {
+    matin: [
+      F('Chef de partie', 'Santi'),
+      F('Plonge', 'Mathis'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Candice'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    midi: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Santi'),
+      F('Barman', 'Claudia'),
+      F('Chef de rang', 'Candice'),
+      F('Chef de rang', 'Anouk'),
+    ],
+    soir: [
+      F('Chef', 'Nico'),
+      F('Chef de partie', 'Daniel'),
+      F('Chef de partie', 'Alexis'),
+      X('Chef de partie', 'Santi'),
+      F('Pizzaiolo', 'Fabien'),
+      F('Pizzaiolo', 'Chaher'),
+      X('Plonge', 'Franco'),
+      F('Barman', 'Ludo'),
+      F('Caisse', 'Coco'),
+      F('Chef de rang', 'Mathis'),
+      F('Chef de rang', 'Axel'),
+      X('Chef de rang', 'Anouk'),
+      F('Runner boisson', 'Claudia'),
+      F('Runner food', 'Antoine'),
+      F('Joker', 'Thomas'),
+      F('Joker', 'Cloe'),
+    ],
+    repos: ['Ildiko'],
+  },
+]
 
 // Extras hors équipe présents dans le pré-chargement
 export const PRELOAD_EXTRAS = ['Franco']

@@ -11,6 +11,7 @@ import {
   DEFAULT_POSTE,
   EQUIPE_FIXE,
   PRELOAD_EXTRAS,
+  PRELOAD_SEED_VERSION,
   PRELOAD_WEEK_START,
 } from './data/config'
 import { mondayOf, todayISO, shiftWeek } from './lib/dates'
@@ -91,6 +92,20 @@ export function FloraProvider({ children }) {
       }
 
       if (res.ok && res.value) {
+        // Graine de pré-chargement obsolète → on ré-applique le planning fourni
+        // (uniquement pour la semaine de référence ; backup automatique avant
+        // écrasement). Les éditions ultérieures restent conservées ensuite.
+        if (
+          iso === PRELOAD_WEEK_START &&
+          res.value.seed !== PRELOAD_SEED_VERSION &&
+          !isWeekBlocked(iso)
+        ) {
+          const reseed = buildPreloadWeek(iso)
+          const okr = writeWeek(iso, reseed)
+          setWeek(reseed)
+          setSaveStatus(okr ? 'saved' : 'retry')
+          return
+        }
         setWeek(res.value)
         setSaveStatus(isWeekBlocked(iso) ? 'blocked' : 'saved')
         return
@@ -98,14 +113,12 @@ export function FloraProvider({ children }) {
 
       // Clé absente : semaine pré-chargée pour la semaine de référence, sinon vide.
       const fresh =
-        iso === PRELOAD_WEEK_START
-          ? buildPreloadWeek(iso, postesMap)
-          : emptyWeek(iso)
+        iso === PRELOAD_WEEK_START ? buildPreloadWeek(iso) : emptyWeek(iso)
       const ok = writeWeek(iso, fresh)
       setWeek(fresh)
       setSaveStatus(ok ? 'saved' : 'retry')
     },
-    [postesMap],
+    [],
   )
 
   useEffect(() => {

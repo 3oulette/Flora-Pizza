@@ -3,9 +3,9 @@
 import {
   BESOINS,
   CRENEAUX,
-  DEFAULT_POSTE,
-  PRELOAD_SHIFTS,
-  SHIFT_CODES,
+  POSTE_EQUIPE,
+  PRELOAD_PLAN,
+  PRELOAD_SEED_VERSION,
 } from '../data/config'
 import { weekDays } from './dates'
 
@@ -80,94 +80,47 @@ export function relevanceForSlot(name, slot, postesMap) {
 }
 
 // ============================================================================
-// Pré-chargement : construit la semaine avec affectations depuis PRELOAD_SHIFTS.
-// Chaque personne va sur son poste par défaut ; en cas de surplus sur un poste,
-// on bascule sur un autre slot libre de la même équipe ; sinon slot « extra ».
+// Pré-chargement : construit la semaine à partir du planning explicite
+// PRELOAD_PLAN (affectations exactes fournies par le manager).
+// Chaque entrée remplit le premier slot libre de son poste ; au-delà du besoin
+// constant, un slot supplémentaire est créé. Les slots non remplis restent
+// « à pourvoir ».
 // ============================================================================
-export function buildPreloadWeek(mondayISO, postesMap = DEFAULT_POSTE) {
+export function buildPreloadWeek(mondayISO) {
   const week = emptyWeek(mondayISO)
   const dayKeys = weekDays(mondayISO)
 
-  // Pour chaque personne, décoder son shift par jour → créneaux travaillés.
   dayKeys.forEach((dayKey, dayIdx) => {
     const day = week.days[dayKey]
-
-    // Regrouper, par créneau, la liste des personnes présentes.
-    const presentsParCreneau = { matin: [], midi: [], soir: [] }
-    for (const [person, codes] of Object.entries(PRELOAD_SHIFTS)) {
-      const code = codes[dayIdx]
-      if (!code) continue
-      if (code === 'R') {
-        if (!day.repos.includes(person)) day.repos.push(person)
-        continue
-      }
-      const def = SHIFT_CODES[code]
-      if (!def) continue
-      for (const cr of def.creneaux) presentsParCreneau[cr].push(person)
-    }
-
-    // Affectation greedy créneau par créneau.
+    const plan = PRELOAD_PLAN[dayIdx]
+    if (!plan) return
     for (const cr of CRENEAUX) {
-      assignCreneau(day.slots[cr], presentsParCreneau[cr], postesMap)
+      fillCreneauFromPlan(day.slots[cr], plan[cr] || [])
     }
+    day.repos = [...(plan.repos || [])]
   })
 
+  week.seed = PRELOAD_SEED_VERSION
   return week
 }
 
-// Affecte une liste de personnes aux slots d'un créneau (mutation en place).
-function assignCreneau(slots, persons, postesMap) {
-  const remaining = new Set(persons)
-
-  // Passe 1 : match exact équipe + poste.
-  for (const slot of slots) {
-    if (slot.person) continue
-    const match = [...remaining].find((p) => {
-      const dp = postesMap[p]
-      return dp && dp.equipe === slot.equipe && dp.poste === slot.poste
-    })
-    if (match) {
-      slot.person = match
-      slot.statut = 'fixe'
-      remaining.delete(match)
+// Place les entrées d'un créneau sur les slots (mutation en place).
+function fillCreneauFromPlan(slots, entries) {
+  for (const entry of entries) {
+    const slot = slots.find((s) => s.poste === entry.poste && !s.person)
+    if (slot) {
+      slot.person = entry.person
+      slot.statut = entry.extra ? 'extra' : 'fixe'
+    } else {
+      // Au-delà du besoin constant → slot supplémentaire.
+      slots.push({
+        id: newSlotId(),
+        equipe: POSTE_EQUIPE[entry.poste] || 'salle',
+        poste: entry.poste,
+        person: entry.person,
+        statut: entry.extra ? 'extra' : 'fixe',
+        base: false,
+      })
     }
-  }
-
-  // Passe 2 : même équipe, poste libre (bascule).
-  for (const slot of slots) {
-    if (slot.person) continue
-    const match = [...remaining].find((p) => {
-      const dp = postesMap[p]
-      return dp && dp.equipe === slot.equipe
-    })
-    if (match) {
-      slot.person = match
-      slot.statut = 'fixe'
-      remaining.delete(match)
-    }
-  }
-
-  // Passe 3 : n'importe quel slot libre (couvre les extras hors équipe / surplus).
-  for (const slot of slots) {
-    if (slot.person) continue
-    if (remaining.size === 0) break
-    const p = remaining.values().next().value
-    slot.person = p
-    slot.statut = postesMap[p] ? 'fixe' : 'extra'
-    remaining.delete(p)
-  }
-
-  // Passe 4 : s'il reste des personnes (surplus), on crée des slots « extra »
-  // pour ne rien perdre de la donnée pré-chargée.
-  for (const p of remaining) {
-    const dp = postesMap[p]
-    slots.push({
-      id: newSlotId(),
-      equipe: dp?.equipe || 'salle',
-      poste: dp?.poste || 'Joker',
-      person: p,
-      statut: 'extra',
-      base: false,
-    })
   }
 }
