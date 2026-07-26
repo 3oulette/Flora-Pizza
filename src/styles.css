@@ -629,6 +629,20 @@ table.grid tbody tr:nth-child(even) .name-col {
   padding: 18px 14px;
   color: var(--txt);
 }
+/* Pendant l'export PNG : le poster prend sa largeur naturelle pour que les
+   7 jours entrent dans l'image (pas de scroll horizontal qui coupe). */
+.poster.exporting {
+  width: max-content;
+  max-width: none;
+}
+.poster.exporting .wk-wrap {
+  overflow: visible;
+}
+.poster.exporting table.grid .name-col {
+  position: static;
+  box-shadow: none;
+}
+
 .poster-head {
   text-align: center;
   margin-bottom: 14px;

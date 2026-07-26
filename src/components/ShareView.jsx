@@ -51,12 +51,24 @@ export default function ShareView() {
   const exportPNG = async () => {
     if (!posterRef.current) return
     setBusy(true)
+    const node = posterRef.current
+    // On étend le poster à sa largeur naturelle pour que les 7 jours entrent
+    // dans la capture (sinon le conteneur scrollable coupe Sam/Dim).
+    node.classList.add('exporting')
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(r)),
+    )
     try {
-      const canvas = await html2canvas(posterRef.current, {
+      const fullWidth = Math.ceil(node.scrollWidth)
+      const canvas = await html2canvas(node, {
         backgroundColor: '#eff2e9',
         scale: 2,
         useCORS: true,
+        width: fullWidth,
+        height: Math.ceil(node.scrollHeight),
+        windowWidth: fullWidth,
       })
+      node.classList.remove('exporting')
       const url = canvas.toDataURL('image/png')
       const a = document.createElement('a')
       a.href = url
@@ -66,6 +78,7 @@ export default function ShareView() {
     } catch (e) {
       flash('Échec export image')
     } finally {
+      node.classList.remove('exporting')
       setBusy(false)
     }
   }
