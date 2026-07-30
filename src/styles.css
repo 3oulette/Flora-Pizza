@@ -728,6 +728,49 @@ table.grid tbody tr:nth-child(even) .name-col {
   color: var(--prune);
 }
 
+/* ---- Vue Partage « par poste » ----------------------------------------- */
+.poste-block {
+  margin-bottom: 14px;
+}
+.poste-cr-head {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: 10px 10px 0 0;
+}
+.poste-cr-head.matin {
+  background: var(--or);
+}
+.poste-cr-head.midi {
+  background: var(--bleu);
+}
+.poste-cr-head.soir {
+  background: var(--prune);
+}
+table.poste-grid td.poste-cell {
+  text-align: left;
+  padding: 6px 8px;
+  vertical-align: top;
+  min-width: 68px;
+}
+table.poste-grid .name-col {
+  min-width: 88px;
+  font-size: 12px;
+  color: var(--txt-2);
+}
+.poste-cell .pname {
+  display: block;
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.poste-cell .pname.x {
+  color: var(--or);
+}
+
 /* ---- Panneau Données --------------------------------------------------- */
 .panel-card {
   background: var(--carte);

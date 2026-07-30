@@ -1,7 +1,20 @@
 // Génération des exports texte (WhatsApp) et helpers d'affichage partagé.
 
-import { CRENEAUX, CRENEAU_LABEL, EQUIPE_KEYS, EQUIPES } from '../data/config'
-import { JOURS_LONGS, formatJourMois, formatPlageSemaine, weekDays } from './dates'
+import {
+  CRENEAUX,
+  CRENEAU_LABEL,
+  EQUIPE_KEYS,
+  EQUIPES,
+  POSTE_EQUIPE,
+  TOUS_POSTES,
+} from '../data/config'
+import {
+  JOURS_COURTS,
+  JOURS_LONGS,
+  formatJourMois,
+  formatPlageSemaine,
+  weekDays,
+} from './dates'
 import { shiftCodeForPerson } from './shifts'
 
 // La personne a-t-elle au moins une affectation « extra » ce jour-là ?
@@ -29,6 +42,57 @@ export function creneauDetail(day, creneau) {
     const ob = posteOrder(b.equipe).indexOf(b.poste)
     return oa - ob
   })
+}
+
+// Ordre canonique des postes (cuisine puis salle, dans l'ordre des équipes).
+const POSTE_ORDER = TOUS_POSTES.map((tp) => tp.poste)
+
+// Structure « par poste » d'un créneau : pour chaque poste présent dans la
+// semaine, la liste des personnes affectées chaque jour.
+// → [{ poste, equipe, cells: [ [{name, extra}], ... 7 jours ] }]
+export function byPosteRows(week, dayKeys, creneau) {
+  const present = new Set()
+  for (const k of dayKeys) {
+    for (const s of week.days[k]?.slots?.[creneau] || []) present.add(s.poste)
+  }
+  const postes = POSTE_ORDER.filter((p) => present.has(p))
+  return postes.map((poste) => ({
+    poste,
+    equipe: POSTE_EQUIPE[poste],
+    cells: dayKeys.map((k) =>
+      (week.days[k]?.slots?.[creneau] || [])
+        .filter((s) => s.poste === poste && s.person)
+        .map((s) => ({ name: s.person, extra: s.statut === 'extra' })),
+    ),
+  }))
+}
+
+// Export texte « par poste » (WhatsApp) : par créneau, chaque poste avec les
+// noms jour par jour.
+export function buildTextExportByPoste(week, mondayISO) {
+  const dayKeys = weekDays(mondayISO)
+  const lines = []
+  lines.push('✿ CAFÉ FLORA — Planning par poste')
+  lines.push(`Semaine ${formatPlageSemaine(mondayISO)}`)
+
+  for (const cr of CRENEAUX) {
+    const rows = byPosteRows(week, dayKeys, cr)
+    if (rows.length === 0) continue
+    lines.push('')
+    lines.push(`— ${CRENEAU_LABEL[cr].toUpperCase()} —`)
+    for (const row of rows) {
+      lines.push(`${row.poste} :`)
+      dayKeys.forEach((k, i) => {
+        const names = row.cells[i]
+        if (names.length === 0) return
+        const txt = names.map((n) => n.name + (n.extra ? '*' : '')).join(', ')
+        lines.push(`  ${JOURS_COURTS[i]} : ${txt}`)
+      })
+    }
+  }
+  lines.push('')
+  lines.push('(* = extra)')
+  return lines.join('\n')
 }
 
 // Export texte formaté WhatsApp.
