@@ -56,6 +56,37 @@ export function emptyWeek(mondayISO) {
   return { weekStart: mondayISO, version: MODEL_VERSION, days }
 }
 
+// Réconcilie une semaine existante avec les besoins constants actuels : ajoute
+// les slots de base manquants (ex. nouveau poste Crêperie) en « à pourvoir »,
+// sans jamais rien supprimer (les affectations et slots ajoutés sont préservés).
+// Renvoie true si la semaine a été modifiée.
+export function reconcileBaseSlots(week) {
+  let changed = false
+  for (const day of Object.values(week?.days || {})) {
+    if (!day.slots) continue
+    for (const cr of CRENEAUX) {
+      const slots = day.slots[cr] || (day.slots[cr] = [])
+      for (const need of BESOINS[cr]) {
+        const present = slots.filter(
+          (s) => s.base && s.equipe === need.equipe && s.poste === need.poste,
+        ).length
+        for (let i = present; i < need.count; i++) {
+          slots.push({
+            id: newSlotId(),
+            equipe: need.equipe,
+            poste: need.poste,
+            person: null,
+            statut: 'fixe',
+            base: true,
+          })
+          changed = true
+        }
+      }
+    }
+  }
+  return changed
+}
+
 // Copie une semaine source vers une autre semaine (nouvelles dates, nouveaux
 // ids de slots). Le mapping se fait par position (lundi→lundi, …).
 export function cloneWeekForTarget(src, targetMondayISO) {

@@ -21,6 +21,7 @@ import {
   cloneWeekForTarget,
   emptyWeek,
   isWeekEmpty,
+  reconcileBaseSlots,
 } from './lib/model'
 import {
   EXTRAS_KEY,
@@ -113,7 +114,12 @@ export function FloraProvider({ children }) {
           setSaveStatus(okr ? 'saved' : 'retry')
           return
         }
-        setWeek(res.value)
+        // Réconciliation : ajoute les slots de base récemment introduits
+        // (ex. Crêperie) sans écraser les affectations existantes.
+        const wk = res.value
+        const changed = reconcileBaseSlots(wk)
+        if (changed && !isWeekBlocked(iso)) writeWeek(iso, wk)
+        setWeek(wk)
         setSaveStatus(isWeekBlocked(iso) ? 'blocked' : 'saved')
         return
       }

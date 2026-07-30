@@ -15,7 +15,7 @@ export const CRENEAU_LABEL = {
 export const EQUIPES = {
   cuisine: {
     label: 'Cuisine',
-    postes: ['Chef', 'Chef de partie', 'Pizzaiolo', 'Plonge'],
+    postes: ['Chef', 'Chef de partie', 'Pizzaiolo', 'Plonge', 'Crêperie'],
   },
   salle: {
     label: 'Salle',
@@ -55,6 +55,7 @@ export const BESOINS = {
     { equipe: 'cuisine', poste: 'Chef de partie', count: 3 },
     { equipe: 'cuisine', poste: 'Pizzaiolo', count: 2 },
     { equipe: 'cuisine', poste: 'Plonge', count: 1 },
+    { equipe: 'cuisine', poste: 'Crêperie', count: 1 },
     { equipe: 'salle', poste: 'Barman', count: 1 },
     { equipe: 'salle', poste: 'Caisse', count: 1 },
     { equipe: 'salle', poste: 'Chef de rang', count: 3 },
