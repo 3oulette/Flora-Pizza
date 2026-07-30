@@ -131,8 +131,9 @@ function ReposSection({ week, dayKey, dayKeys }) {
 }
 
 export default function DayView({ selected, setSelected }) {
-  const { week, mondayISO } = useFlora()
+  const { week, mondayISO, weekIsEmpty, copyWeekFrom } = useFlora()
   const dayKeys = useMemo(() => weekDays(mondayISO), [mondayISO])
+  const [copyMsg, setCopyMsg] = useState('')
 
   // Garde-fou : si le jour sélectionné n'appartient plus à la semaine affichée,
   // on retombe sur aujourd'hui (si présent) ou le lundi.
@@ -152,8 +153,36 @@ export default function DayView({ selected, setSelected }) {
   const day = week.days[activeKey]
   if (!day) return null
 
+  const copierPrecedente = () => {
+    const r = copyWeekFrom(-1)
+    if (!r.ok) {
+      setCopyMsg(
+        r.reason === 'source-vide'
+          ? 'La semaine précédente est vide — rien à copier.'
+          : 'Copie impossible.',
+      )
+      setTimeout(() => setCopyMsg(''), 3000)
+    }
+  }
+
   return (
     <div>
+      {/* Bannière : semaine vide → copier la précédente */}
+      {weekIsEmpty && (
+        <div className="copy-banner">
+          <div className="cb-text">
+            <strong>Semaine vide</strong>
+            <span className="muted">
+              Repartez de la semaine précédente au lieu de tout resaisir.
+            </span>
+            {copyMsg && <span className="cb-msg">{copyMsg}</span>}
+          </div>
+          <button className="btn" onClick={copierPrecedente}>
+            ⧉ Copier la semaine précédente
+          </button>
+        </div>
+      )}
+
       {/* Onglets Lun→Dim */}
       <div className="daytabs">
         {dayKeys.map((key, i) => {

@@ -68,6 +68,8 @@ export default function DataPanel() {
     mondayISO,
     saveStatus,
     replaceWeek,
+    copyWeekFrom,
+    weekIsEmpty,
     restoreCurrentBackup,
     resetPostes,
     reloadWeek,
@@ -138,6 +140,46 @@ export default function DataPanel() {
           Semaine du {formatComplet(mondayISO)} — écriture immédiate à chaque
           modification, backup automatique avant la 1re modification.
         </p>
+      </Section>
+
+      {/* Dupliquer une semaine */}
+      <Section title="Dupliquer une semaine">
+        <p className="muted">
+          Recopie une autre semaine dans celle affichée (créneaux, affectations,
+          extras, repos). Pratique pour repartir de la semaine passée.
+        </p>
+        {(() => {
+          const copier = (offset, label) => {
+            if (
+              !weekIsEmpty &&
+              !window.confirm(
+                `Remplacer la semaine affichée par ${label} ? Un backup est conservé.`,
+              )
+            )
+              return
+            const r = copyWeekFrom(offset)
+            flash(
+              r.ok
+                ? 'Semaine copiée ✓'
+                : r.reason === 'source-vide'
+                  ? `${label} est vide — rien à copier.`
+                  : 'Copie impossible.',
+            )
+          }
+          return (
+            <div className="btn-row">
+              <button className="btn" onClick={() => copier(-1, 'la semaine précédente')}>
+                ⧉ Copier la semaine précédente
+              </button>
+              <button
+                className="btn ghost"
+                onClick={() => copier(1, 'la semaine suivante')}
+              >
+                Copier la semaine suivante
+              </button>
+            </div>
+          )
+        })()}
       </Section>
 
       {/* Export / Import */}

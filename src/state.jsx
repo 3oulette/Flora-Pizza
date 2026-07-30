@@ -15,7 +15,13 @@ import {
   PRELOAD_WEEK_START,
 } from './data/config'
 import { mondayOf, todayISO, shiftWeek } from './lib/dates'
-import { MODEL_VERSION, buildPreloadWeek, emptyWeek } from './lib/model'
+import {
+  MODEL_VERSION,
+  buildPreloadWeek,
+  cloneWeekForTarget,
+  emptyWeek,
+  isWeekEmpty,
+} from './lib/model'
 import {
   EXTRAS_KEY,
   POSTES_KEY,
@@ -23,6 +29,7 @@ import {
   isWeekBlocked,
   readJSON,
   restoreBackup,
+  weekKey,
   writeRaw,
   writeWeek,
 } from './lib/storage'
@@ -163,6 +170,26 @@ export function FloraProvider({ children }) {
     [mondayISO],
   )
 
+  // Copie une autre semaine (source) dans la semaine courante.
+  // sourceOffset = -1 (précédente), +1 (suivante), etc.
+  const copyWeekFrom = useCallback(
+    (sourceOffset) => {
+      if (isWeekBlocked(mondayISO)) {
+        setSaveStatus('blocked')
+        return { ok: false, reason: 'blocked' }
+      }
+      const sourceISO = shiftWeek(mondayISO, sourceOffset)
+      const res = readJSON(weekKey(sourceISO))
+      if (!(res.ok && res.value)) return { ok: false, reason: 'source-vide' }
+      const cloned = cloneWeekForTarget(res.value, mondayISO)
+      const ok = writeWeek(mondayISO, cloned) // backup automatique avant écrasement
+      setWeek(cloned)
+      setSaveStatus(ok ? 'saved' : 'retry')
+      return { ok, reason: ok ? null : 'write' }
+    },
+    [mondayISO],
+  )
+
   // Réessai d'enregistrement (si un write a échoué).
   const retrySave = useCallback(() => {
     if (!week) return
@@ -217,6 +244,8 @@ export function FloraProvider({ children }) {
     allNames,
     updateWeek,
     replaceWeek,
+    copyWeekFrom,
+    weekIsEmpty: isWeekEmpty(week),
     retrySave,
     goPrev,
     goNext,

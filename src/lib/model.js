@@ -56,6 +56,48 @@ export function emptyWeek(mondayISO) {
   return { weekStart: mondayISO, version: MODEL_VERSION, days }
 }
 
+// Copie une semaine source vers une autre semaine (nouvelles dates, nouveaux
+// ids de slots). Le mapping se fait par position (lundi→lundi, …).
+export function cloneWeekForTarget(src, targetMondayISO) {
+  const srcDayKeys = Object.keys(src.days || {}).sort()
+  const tgtDayKeys = weekDays(targetMondayISO)
+  const days = {}
+  tgtDayKeys.forEach((tk, i) => {
+    const srcDay = src.days[srcDayKeys[i]]
+    if (!srcDay) {
+      days[tk] = emptyDay()
+      return
+    }
+    const cloned = structuredClone(srcDay)
+    for (const cr of CRENEAUX) {
+      cloned.slots[cr] = (cloned.slots[cr] || []).map((s) => ({
+        ...s,
+        id: newSlotId(),
+      }))
+    }
+    cloned.repos = [...(srcDay.repos || [])]
+    days[tk] = cloned
+  })
+  return {
+    weekStart: targetMondayISO,
+    version: MODEL_VERSION,
+    seed: PRELOAD_SEED_VERSION,
+    days,
+  }
+}
+
+// Une semaine est « vide » si aucun slot n'est pourvu et aucun repos posé.
+export function isWeekEmpty(week) {
+  if (!week) return true
+  for (const day of Object.values(week.days || {})) {
+    if ((day.repos || []).length > 0) return false
+    for (const cr of CRENEAUX) {
+      if ((day.slots?.[cr] || []).some((s) => s.person)) return false
+    }
+  }
+  return true
+}
+
 // --- Ordonnancement des noms pour le sélecteur d'un slot ---
 // 1) même poste que le slot, 2) même équipe, 3) le reste.
 export function orderNamesForSlot(names, slot, postesMap) {

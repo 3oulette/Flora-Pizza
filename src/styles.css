@@ -465,6 +465,36 @@ textarea {
   opacity: 0.8;
 }
 
+/* ---- Bannière « copier la semaine précédente » ------------------------- */
+.copy-banner {
+  background: var(--carte);
+  border: 1px solid var(--bord);
+  border-radius: var(--r);
+  box-shadow: var(--ombre);
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.copy-banner .cb-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.copy-banner .cb-text strong {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+}
+.copy-banner .cb-msg {
+  color: var(--rouge);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.copy-banner .btn {
+  width: 100%;
+}
+
 /* ---- Section titre ----------------------------------------------------- */
 .section-title {
   font-family: 'Fraunces', serif;
