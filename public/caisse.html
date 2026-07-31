@@ -570,7 +570,6 @@ for (let h = 18; h <= 23; h++) {
   }
 }
 
-loadMenu();
 let qtys = new Array(PIZZAS.length).fill(0);
 let orders = [];
 let orderCounter = 0;
@@ -1045,6 +1044,8 @@ function resetMenuToDefault() {
 
 
 // ── INIT ──
+loadMenu();
+qtys = new Array(PIZZAS.length).fill(0);
 loadState();
 renderMenu();
 renderTicket();
