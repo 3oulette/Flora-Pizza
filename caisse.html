@@ -147,6 +147,20 @@
   }
   .modal-reset:hover { border-color: var(--red); color: var(--red); }
 
+  /* ══ GREETING SPLASH ══ */
+  #greeting {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(28,28,30,0.96);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 72px; font-weight: 800;
+    letter-spacing: -0.02em; text-align: center; padding: 24px;
+    animation: greetFade 2.4s ease-in forwards;
+  }
+  @keyframes greetFade {
+    0%, 35% { opacity: 1; }
+    100%    { opacity: 0; visibility: hidden; }
+  }
+
   /* ══ LAYOUT ══ */
   .layout { display: flex; flex: 1; overflow: hidden; }
 
@@ -410,6 +424,8 @@
 </style>
 </head>
 <body>
+
+<div id="greeting" onclick="this.style.display='none'">Bonjour Coco !</div>
 
 <div class="topbar">
   <div class="topbar-left">
